@@ -1,0 +1,10 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body { @apply bg-white font-sans text-slate-900 antialiased; }
+:focus-visible { @apply outline-2 outline-offset-2 outline-brand-500; }
+.editor:empty:before { content: attr(data-placeholder); @apply text-slate-400; }
+.editor ul { @apply list-disc pl-6; }
+.editor ol { @apply list-decimal pl-6; }
+.editor blockquote { @apply border-l-4 border-slate-300 pl-3 text-slate-600; }
