@@ -18,45 +18,52 @@ export const authController = {
   },
 
   async devLogin(req: Request, res: Response) {
-    const { email, name } = req.body;
-    const userEmail = email || "oliver.brown@reachinbox.ai";
-    const userName = name || "Oliver Brown";
+    try {
+      const { email, name } = req.body;
+      const userEmail = email || "oliver.brown@reachinbox.ai";
+      const userName = name || "Oliver Brown";
 
-    let user = await prisma.user.findUnique({ where: { email: userEmail } });
-    if (!user) {
-      user = await prisma.user.create({
-        data: {
-          email: userEmail,
-          name: userName,
-          avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80",
-        },
-      });
-    }
+      let user = await prisma.user.findUnique({ where: { email: userEmail } });
+      if (!user) {
+        user = await prisma.user.create({
+          data: {
+            email: userEmail,
+            name: userName,
+            avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80",
+          },
+        });
+      }
 
-    (req.session as any).userId = user.id;
-    if (req.login) {
-      req.login(user, (err) => {
-        if (err) return res.status(500).json({ error: err.message });
-        return res.json(user);
-      });
-    } else {
-      return res.json(user);
+      (req.session as any).userId = user.id;
+      if (req.login) {
+        req.login(user, (err) => {
+          if (err) return res.status(500).json({ error: err.message });
+          return req.session.save(() => {
+            return res.json(user);
+          });
+        });
+      } else {
+        return req.session.save(() => {
+          return res.json(user);
+        });
+      }
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message });
     }
   },
 
   async logout(req: Request, res: Response) {
-    if (req.logout) {
-      req.logout((err) => {
-        req.session?.destroy(() => {
-          res.clearCookie("connect.sid");
-          return res.json({ message: "Logged out successfully" });
-        });
-      });
-    } else {
+    const finish = () => {
       req.session?.destroy(() => {
         res.clearCookie("connect.sid");
         return res.json({ message: "Logged out successfully" });
       });
+    };
+
+    if (req.logout) {
+      req.logout(() => finish());
+    } else {
+      finish();
     }
   },
 };

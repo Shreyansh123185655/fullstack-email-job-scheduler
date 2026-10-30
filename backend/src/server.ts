@@ -75,6 +75,15 @@ app.get("/health", (req, res) => {
   });
 });
 
+// Global error handler middleware
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error("[Express Error Handler]", err);
+  if (res.headersSent) {
+    return next(err);
+  }
+  res.status(err.status || 500).json({ error: err.message || "Internal Server Error" });
+});
+
 let workerInstance: any = null;
 
 async function bootstrap() {
