@@ -87,7 +87,7 @@ Built strictly according to ReachInbox assignment constraints (**No Cron Jobs**,
 - **Next-Hour Slotted Deferral**: When an hourly limit is hit, jobs are **never failed or dropped**. Instead:
   1. The exact timestamp of the next hour boundary is computed (`nextHour = (currentHour + 1) * 3600000`).
   2. The email's `scheduledAt` date in PostgreSQL is updated to the next hour.
-  3. The BullMQ job is moved to delayed state via `job.moveToDelayed(nextHour, token)`.
+  3. The BullMQ job is moved to delayed state via `job.moveToDelayed(nextHour, token)` and throws `DelayedError()`.
   4. A live alert is dispatched to the user's connected Slack workspace.
 
 ### 4. Provider Throttling Delay
@@ -181,16 +181,19 @@ The backend starts on `http://localhost:4000`:
 
 ### Step 4: Run the Frontend Dashboard
 
-Open a new terminal window:
 ```bash
-# From project root:
+cd frontend
+
+# 1. Install dependencies
 npm install
 
-# Start Vite dev server (proxies /api to http://localhost:4000)
+# 2. Start Vite dev server (proxies /api to http://localhost:4000)
 npm run dev
 ```
 
 Visit **`http://localhost:5173`** in your browser.
+
+*(Alternatively, run `npm run dev:backend` and `npm run dev:frontend` from the repository root)*.
 
 ---
 
@@ -215,7 +218,7 @@ Visit **`http://localhost:5173`** in your browser.
 | `SLACK_CLIENT_SECRET` | `""` | Slack App OAuth Client Secret |
 | `SLACK_WEBHOOK_URL` | `""` | Default incoming Slack webhook for alerts |
 
-### Frontend (`.env`)
+### Frontend (`frontend/.env`)
 | Variable | Value | Description |
 |---|---|---|
 | `VITE_USE_MOCK` | `false` | Set to `false` to communicate with the real backend |
@@ -269,28 +272,35 @@ In the dashboard:
 ## 📁 Repository Structure
 
 ```
-.
+fullstack-email-job-scheduler/
 ├── docker-compose.yml           # Multi-container setup (Postgres, Redis AOF, Elasticsearch)
-├── package.json                 # Frontend package manifest
-├── vite.config.ts               # Vite configuration with /api proxy to port 4000
-├── src/                         # Frontend React + TypeScript source
-│   ├── components/              # Layout, compose form, email list, SlackModal, UI
-│   ├── pages/                   # LoginPage, EmailListPage, EmailDetailPage, ComposePage
-│   ├── services/                # authService, emailService, slackService, http client
-│   └── types/                   # TypeScript interfaces
-└── backend/                     # Backend Express + BullMQ source
-    ├── docker-compose.yml       # Backend Docker configuration
-    ├── package.json             # Backend dependencies
-    ├── prisma/
-    │   └── schema.prisma        # Database schema (User, Sender, Email, SlackIntegration)
+├── package.json                 # Monorepo root workspace scripts
+├── README.md                    # System architecture and documentation
+├── backend/                     # Backend Express + BullMQ source
+│   ├── docker-compose.yml       # Standalone backend Docker configuration
+│   ├── package.json             # Backend dependencies
+│   ├── tsconfig.json            # Backend TypeScript configuration
+│   ├── prisma/
+│   │   └── schema.prisma        # Database schema (User, Sender, Email, SlackIntegration)
+│   └── src/
+│       ├── config/              # env, db (Prisma), redis, elastic, passport
+│       ├── queues/              # BullMQ queue definition (email-queue)
+│       ├── workers/             # emailWorker (idempotency, Lua rate limiter, Nodemailer)
+│       ├── services/            # smtpService, rateLimiter, slackService, elasticService
+│       ├── controllers/         # authController, emailController, senderController, slackController
+│       ├── routes/              # Express API routers
+│       └── server.ts            # Application bootstrap & graceful shutdown
+└── frontend/                    # Frontend React + TypeScript source
+    ├── index.html               # Frontend HTML root
+    ├── package.json             # Frontend dependencies
+    ├── vite.config.ts           # Vite dev proxy configuration
+    ├── tailwind.config.js       # Tailwind CSS configuration
+    ├── tsconfig.json            # Frontend TypeScript configuration
     └── src/
-        ├── config/              # env, db (Prisma), redis, elastic, passport
-        ├── queues/              # BullMQ queue definition (email-queue)
-        ├── workers/             # emailWorker (idempotency, Lua rate limiter, Nodemailer)
-        ├── services/            # smtpService, rateLimiter, slackService, elasticService
-        ├── controllers/         # authController, emailController, senderController, slackController
-        ├── routes/              # Express API routers
-        └── server.ts            # Application bootstrap & graceful shutdown
+        ├── components/          # Layout, compose form, email list, SlackModal, UI
+        ├── pages/               # LoginPage, EmailListPage, EmailDetailPage, ComposePage
+        ├── services/            # authService, emailService, slackService, http client
+        └── types/               # Shared TypeScript shapes
 ```
 
 ---
