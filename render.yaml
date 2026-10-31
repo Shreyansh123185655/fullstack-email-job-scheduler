@@ -44,5 +44,5 @@ services:
 databases:
   - name: reachinbox-db
     databaseName: reachinbox
-    user: postgres
+    user: reachinbox_user
     plan: free
