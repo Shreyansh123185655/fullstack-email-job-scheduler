@@ -4,9 +4,6 @@ import { emailQueue } from "../queues/emailQueue";
 import { elasticService } from "../services/elasticService";
 
 export const emailController = {
-  /**
-   * Schedule new emails for one or more recipients
-   */
   async schedule(req: Request, res: Response) {
     try {
       const {
@@ -66,8 +63,6 @@ export const emailController = {
             scheduledAt: targetSendDate,
           },
         });
-
-        // Index in Elasticsearch asynchronously
         elasticService.indexEmail({
           id: email.id,
           senderId: email.senderId,
@@ -81,9 +76,6 @@ export const emailController = {
           sentAt: null,
           createdAt: email.createdAt.toISOString(),
         });
-
-        // Add to BullMQ as a persistent delayed job
-        // jobId = email.id guarantees idempotency (cannot enqueue duplicates)
         await emailQueue.add(
           "send-email",
           {
@@ -109,18 +101,11 @@ export const emailController = {
       return res.status(500).json({ error: err.message });
     }
   },
-
-  /**
-   * List emails filtered by status ("scheduled" | "sent") and optional search query
-   */
   async list(req: Request, res: Response) {
     try {
       const status = (req.query.status as string) || "scheduled";
       const q = (req.query.q as string) || "";
-
-      // Elasticsearch query with PostgreSQL fallback
       const emails = await elasticService.searchEmails(status, q);
-
       const formatted = emails.map((e) => ({
         id: e.id,
         from: e.from,
@@ -138,10 +123,6 @@ export const emailController = {
       return res.status(500).json({ error: err.message });
     }
   },
-
-  /**
-   * Get email counts for sidebar badges
-   */
   async counts(req: Request, res: Response) {
     try {
       const [scheduled, sent] = await Promise.all([
@@ -153,10 +134,6 @@ export const emailController = {
       return res.status(500).json({ error: err.message });
     }
   },
-
-  /**
-   * Get single email by ID
-   */
   async getById(req: Request, res: Response) {
     try {
       const { id } = req.params;
