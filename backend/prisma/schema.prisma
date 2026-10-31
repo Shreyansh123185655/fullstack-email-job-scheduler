@@ -2,11 +2,9 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-
 generator client {
   provider = "prisma-client-js"
 }
-
 model User {
   id               String            @id @default(uuid())
   googleId         String?           @unique
@@ -18,7 +16,6 @@ model User {
   emails           Email[]
   slackIntegration SlackIntegration?
 }
-
 model Sender {
   id          String   @id @default(uuid())
   name        String
@@ -31,7 +28,6 @@ model Sender {
   createdAt   DateTime @default(now())
   emails      Email[]
 }
-
 model Email {
   id           String    @id @default(uuid())
   senderId     String
@@ -49,12 +45,10 @@ model Email {
   retryCount   Int       @default(0)
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
-
   @@index([status])
   @@index([senderId])
   @@index([scheduledAt])
 }
-
 model SlackIntegration {
   id          String   @id @default(uuid())
   userId      String   @unique
