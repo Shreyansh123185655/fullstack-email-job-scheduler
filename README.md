@@ -167,8 +167,9 @@ flowchart TD
 #### 7. Live BullMQ Dashboard
 #### 8. Slack Integration with the real OAuth (google)
 
+---
+**As asked in the requirement section of the description shared by the job. Here are the explained terms**
 
-###As asked in the requirement section of the description shared by the job. Here are the explained terms 
 ## 1. Ethereal Email & Environmental Variables
 Using Nodemailer to send emails but not actually deliver them to an inbox. Each email sent creates a preview link. 
 Environmental variables have been used. These are stored within `.env` files which store the config for PostgreSQL, Redis, Authentication, Slack, and the Email Scheduler.
