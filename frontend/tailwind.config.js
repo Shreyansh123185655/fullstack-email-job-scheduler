@@ -1,4 +1,3 @@
-/** Colors are taken from the Figma screens: soft green brand, warm "scheduled" chip, pale grey fields. */
 export default {
   content: ["./index.html", "./src/**/*.{ts,tsx}"],
   theme: {
