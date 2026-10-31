@@ -1,6 +1,4 @@
 import { redisClient } from "../config/redis";
-
-// Lua script guarantees atomicity across multiple distributed workers
 const RATE_LIMIT_LUA = `
 local key = KEYS[1]
 local limit = tonumber(ARGV[1])
@@ -19,18 +17,13 @@ else
   return { 1, new_count, ttl }
 end
 `;
-
 export interface RateLimitResult {
   allowed: boolean;
   currentCount: number;
   ttlSeconds: number;
   nextWindowTimestamp: number;
 }
-
 export const rateLimiter = {
-  /**
-   * Checks whether the given sender can dispatch an email in the current hourly window
-   */
   async checkAndIncrement(senderId: string, hourlyLimit: number): Promise<RateLimitResult> {
     const currentHourIndex = Math.floor(Date.now() / 3600000);
     const key = `rl:${senderId}:${currentHourIndex}`;
@@ -42,14 +35,10 @@ export const rateLimiter = {
       key,
       hourlyLimit.toString()
     )) as [number, number, number];
-
     const allowed = result[0] === 1;
     const currentCount = result[1];
     const ttlSeconds = Math.max(1, result[2]);
-
-    // Next hour boundary timestamp in ms
     const nextWindowTimestamp = (currentHourIndex + 1) * 3600000;
-
     return {
       allowed,
       currentCount,
@@ -57,10 +46,6 @@ export const rateLimiter = {
       nextWindowTimestamp,
     };
   },
-
-  /**
-   * Get current usage for a sender in this hour
-   */
   async getCurrentUsage(senderId: string): Promise<number> {
     const currentHourIndex = Math.floor(Date.now() / 3600000);
     const key = `rl:${senderId}:${currentHourIndex}`;
