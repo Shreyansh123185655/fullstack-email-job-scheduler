@@ -1,9 +1,7 @@
 import { createContext, useCallback, useContext, useState, type ReactNode } from "react";
-
 type Kind = "success" | "error";
 interface ToastItem { id: number; kind: Kind; text: string }
 const ToastContext = createContext<(kind: Kind, text: string) => void>(() => {});
-
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<ToastItem[]>([]);
   const push = useCallback((kind: Kind, text: string) => {
