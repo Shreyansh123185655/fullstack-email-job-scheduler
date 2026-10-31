@@ -139,6 +139,15 @@ export const slackService = {
       }
 
       if (!webhookUrl) {
+        const fallbackIntegration = await prisma.slackIntegration.findFirst({
+          where: { active: true },
+        });
+        if (fallbackIntegration?.webhookUrl) {
+          webhookUrl = fallbackIntegration.webhookUrl;
+        }
+      }
+
+      if (!webhookUrl) {
         console.log(
           `[Slack Alert Skipped] Rate limit reached for ${alert.senderEmail}, but no Slack webhook is configured.`
         );

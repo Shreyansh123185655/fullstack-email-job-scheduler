@@ -34,7 +34,11 @@ export const emailController = {
         return res.status(404).json({ error: "Sender not found" });
       }
 
-      const userId = (req.user as any)?.id || (req.session as any)?.userId || null;
+      let userId = (req.user as any)?.id || (req.session as any)?.userId || null;
+      if (!userId) {
+        const primaryUser = await prisma.user.findFirst();
+        userId = primaryUser?.id || null;
+      }
       const baseTimestamp = startTime ? Math.max(Date.now(), new Date(startTime).getTime()) : Date.now();
       const delayBetweenMs = Math.max(0, parseInt(delaySeconds, 10) || 0) * 1000;
       const effectiveHourlyLimit = Math.max(1, parseInt(hourlyLimit, 10) || sender.hourlyLimit || 100);
