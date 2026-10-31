@@ -14,11 +14,7 @@ export interface EmailDoc {
   sentAt?: string | null;
   createdAt: string;
 }
-
 export const elasticService = {
-  /**
-   * Index or upsert an email document in Elasticsearch
-   */
   async indexEmail(email: EmailDoc): Promise<void> {
     try {
       await esClient.index({
@@ -34,10 +30,6 @@ export const elasticService = {
       console.warn(`[Elasticsearch Index Warn] Could not index email ${email.id}:`, err.message);
     }
   },
-
-  /**
-   * Update fields for an existing email document
-   */
   async updateEmailStatus(id: string, status: string, sentAt?: Date | null): Promise<void> {
     try {
       await esClient.update({
@@ -52,15 +44,8 @@ export const elasticService = {
       console.warn(`[Elasticsearch Update Warn] Could not update email ${id}:`, err.message);
     }
   },
-
-  /**
-   * Search emails matching status and query text across subject, to, and body.
-   * Transparently falls back to Postgres ILIKE if Elasticsearch is unavailable.
-   */
   async searchEmails(status: string, query: string): Promise<any[]> {
     const trimmed = query.trim();
-
-    // If query is empty, query database directly for exact ordering
     if (!trimmed) {
       return prisma.email.findMany({
         where: { status },
@@ -94,13 +79,9 @@ export const elasticService = {
       if (ids.length === 0) {
         return [];
       }
-
-      // Fetch full relational records from DB to ensure freshest data
       const records = await prisma.email.findMany({
         where: { id: { in: ids } },
       });
-
-      // Maintain relevance order from Elasticsearch
       const idMap = new Map(records.map((r) => [r.id, r]));
       return ids.map((id) => idMap.get(id)).filter(Boolean);
     } catch (err: any) {
