@@ -148,7 +148,7 @@ flowchart TD
     API --> BB[Bull-Board /admin/queues]
 ```
 
-## Core Engineering Highlights
+## Points that i have kept in my mind while execution and running the project 
 
 #### 1. Zero Cron Jobs and Idempotent Scheduling
 #### 2. Restart Resilience
