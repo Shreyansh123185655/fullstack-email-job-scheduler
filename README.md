@@ -20,11 +20,7 @@ Built strictly to the ReachInbox assignment constraints: **no cron jobs**, **Bul
 
 ---
 
-## Screenshots
 
-<!-- Add screenshots: Dashboard, Compose, Scheduled list, Bull-Board, Slack alert -->
-
----
 
 ## Architecture
 
@@ -334,6 +330,16 @@ fullstack-email-job-scheduler/
 - **Observability:** structured logging, metrics (Prometheus), tracing.
 - **Product:** campaign sequences, templates, per-recipient timezones.
 
+---
+## Screenshots
+
+<!-- Add screenshots: Dashboard, Compose, Scheduled list, Bull-Board, Slack alert -->
+<img width="1710" height="1107" alt="Screenshot 2026-10-31 at 9 45 52 AM" src="https://github.com/user-attachments/assets/57a05449-4b60-4bd3-bb45-8b0fd94e4a20" /><img width="1710" height="1107" alt="Screenshot 2026-10-31 at 10 38 26 AM" src="https://github.com/user-attachments/assets/2ed0a905-0e6c-476f-b005-6bc983ead64d" />
+<img width="1710" height="1107" alt="Screenshot 2026-10-31 at 9 48 05 AM" src="https://github.com/user-attachments/assets/c611c247-2a09-4faa-ac76-896c669ee53e" />
+<img width="1710" height="1107" alt="Screenshot 2026-10-31 at 9 47 53 AM" src="https://github.com/user-attachments/assets/3dd74f9d-8d65-43d4-89e3-eb064f586a5f" />
+<img width="1710" height="1107" alt="Screenshot 2026-10-31 at 9 47 49 AM" src="https://github.com/user-attachments/assets/6ae66290-1529-4deb-af52-55f52958e245" />
+<img width="1710" height="1107" alt="Screenshot 2026-10-31 at 9 46 07 AM" src="https://github.com/user-attachments/assets/6d52390d-c9ca-4a6d-a592-f56be01b5425" />
+<img width="1710" height="1107" alt="Screenshot 2026-10-31 at 9 46 02 AM" src="https://github.com/user-attachments/assets/c425bddc-aa05-4875-afcd-9811131a541a" />
 ---
 
 ## Submission and Reviewer Access
