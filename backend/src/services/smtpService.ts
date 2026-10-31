@@ -1,21 +1,17 @@
 import nodemailer, { Transporter } from "nodemailer";
 import { prisma } from "../config/db";
-
 const transporters = new Map<string, Transporter>();
-
 export interface SmtpConfig {
   host: string;
   port: number;
   user: string;
   pass: string;
 }
-
 export function getTransporter(config: SmtpConfig): Transporter {
   const cacheKey = `${config.host}:${config.port}:${config.user}`;
   if (transporters.has(cacheKey)) {
     return transporters.get(cacheKey)!;
   }
-
   const transporter = nodemailer.createTransport({
     host: config.host,
     port: config.port,
@@ -25,11 +21,9 @@ export function getTransporter(config: SmtpConfig): Transporter {
       pass: config.pass,
     },
   });
-
   transporters.set(cacheKey, transporter);
   return transporter;
 }
-
 export async function createEtherealAccount(): Promise<{
   name: string;
   email: string;
@@ -68,8 +62,6 @@ export async function ensureDefaultSenders(): Promise<void> {
         },
         update: {},
       });
-
-      // Generate second test sender
       try {
         const s2 = await createEtherealAccount();
         if (s2.email !== s1.email) {
@@ -88,7 +80,6 @@ export async function ensureDefaultSenders(): Promise<void> {
           });
         }
       } catch (e) {
-        // Optional second sender
       }
 
       console.log(`✓ Ethereal sender account ready: ${s1.email}`);
@@ -97,7 +88,6 @@ export async function ensureDefaultSenders(): Promise<void> {
     }
   }
 }
-
 export async function sendMailViaSmtp(options: {
   host: string;
   port: number;
