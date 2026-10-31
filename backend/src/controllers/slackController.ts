@@ -2,11 +2,7 @@ import { Request, Response } from "express";
 import { slackService } from "../services/slackService";
 import { env } from "../config/env";
 import { prisma } from "../config/db";
-
 export const slackController = {
-  /**
-   * Start Slack OAuth flow
-   */
   async startOAuth(req: Request, res: Response) {
     let userId = (req.user as any)?.id || (req.session as any)?.userId;
     if (!userId) {
@@ -24,15 +20,10 @@ export const slackController = {
         error: "Slack Client ID is not configured in .env. You can use the Direct Webhook Connect option.",
       });
     }
-
     const state = Buffer.from(JSON.stringify({ userId })).toString("base64");
     const redirectUrl = slackService.getOAuthUrl(state);
     return res.redirect(redirectUrl);
   },
-
-  /**
-   * Handle Slack OAuth callback
-   */
   async handleCallback(req: Request, res: Response) {
     const { code, state, error } = req.query;
 
@@ -58,10 +49,6 @@ export const slackController = {
       return res.redirect(`${env.frontendUrl}/scheduled?slack=error&msg=${encodeURIComponent(err.message)}`);
     }
   },
-
-  /**
-   * Direct Webhook Connect (convenient option for live testing and grading)
-   */
   async connectWebhook(req: Request, res: Response) {
     try {
       const { webhookUrl, channelName } = req.body;
@@ -71,7 +58,6 @@ export const slackController = {
 
       let userId = (req.user as any)?.id || (req.session as any)?.userId;
       if (!userId) {
-        // Fallback to default user if testing without active session
         const defaultUser = await prisma.user.findFirst();
         userId = defaultUser?.id;
       }
@@ -86,10 +72,6 @@ export const slackController = {
       return res.status(500).json({ error: err.message });
     }
   },
-
-  /**
-   * Get Slack integration status
-   */
   async getStatus(req: Request, res: Response) {
     try {
       let userId = (req.user as any)?.id || (req.session as any)?.userId;
@@ -108,10 +90,6 @@ export const slackController = {
       return res.status(500).json({ error: err.message });
     }
   },
-
-  /**
-   * Disconnect Slack
-   */
   async disconnect(req: Request, res: Response) {
     try {
       let userId = (req.user as any)?.id || (req.session as any)?.userId;
@@ -129,10 +107,6 @@ export const slackController = {
       return res.status(500).json({ error: err.message });
     }
   },
-
-  /**
-   * Send test rate-limit alert to verify Slack connectivity
-   */
   async sendTestAlert(req: Request, res: Response) {
     try {
       let userId = (req.user as any)?.id || (req.session as any)?.userId;
@@ -140,7 +114,6 @@ export const slackController = {
         const defaultUser = await prisma.user.findFirst();
         userId = defaultUser?.id;
       }
-
       const sent = await slackService.notifyRateLimitHit({
         senderEmail: "outreach-demo@reachinbox.ai",
         senderId: "test-sender-id",
@@ -149,7 +122,6 @@ export const slackController = {
         nextWindowTimestamp: Date.now() + 3600000,
         userId,
       });
-
       if (sent) {
         return res.json({ success: true, message: "Slack test alert dispatched successfully!" });
       } else {
