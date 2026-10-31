@@ -5,7 +5,6 @@ import session from "express-session";
 import { createBullBoard } from "@bull-board/api";
 import { BullMQAdapter } from "@bull-board/api/bullMQAdapter";
 import { ExpressAdapter } from "@bull-board/express";
-
 import { env } from "./config/env";
 import { prisma } from "./config/db";
 import { redisClient } from "./config/redis";
@@ -14,15 +13,11 @@ import passport from "./config/passport";
 import { emailQueue } from "./queues/emailQueue";
 import { startEmailWorker, reconcileDanglingJobs } from "./workers/emailWorker";
 import { ensureDefaultSenders } from "./services/smtpService";
-
 import authRoutes from "./routes/authRoutes";
 import emailRoutes from "./routes/emailRoutes";
 import senderRoutes from "./routes/senderRoutes";
 import slackRoutes from "./routes/slackRoutes";
-
 const app = express();
-
-// Enable CORS for Vite frontend with credentials (session cookies)
 app.use(
   cors({
     origin: env.frontendUrl,
@@ -43,15 +38,12 @@ app.use(
       httpOnly: true,
       secure: env.nodeEnv === "production",
       sameSite: env.nodeEnv === "production" ? "none" : "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      maxAge: 7 * 24 * 60 * 60 * 1000, 
     },
   })
 );
-
 app.use(passport.initialize());
 app.use(passport.session());
-
-// Live BullMQ Queue Monitoring Dashboard (/admin/queues)
 const serverAdapter = new ExpressAdapter();
 serverAdapter.setBasePath("/admin/queues");
 createBullBoard({
@@ -59,14 +51,10 @@ createBullBoard({
   serverAdapter,
 });
 app.use("/admin/queues", serverAdapter.getRouter());
-
-// REST API Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/emails", emailRoutes);
 app.use("/api/senders", senderRoutes);
 app.use("/api/slack", slackRoutes);
-
-// Root endpoint & Healthcheck
 app.get("/", (req, res) => {
   res.json({
     status: "ok",
@@ -94,7 +82,6 @@ app.get(["/health", "/api/health"], (req, res) => {
   });
 });
 
-// Global error handler middleware
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.error("[Express Error Handler]", err);
   if (res.headersSent) {
@@ -108,31 +95,17 @@ let workerInstance: any = null;
 async function bootstrap() {
   try {
     console.log("=== Initializing ReachInbox Email Scheduler ===");
-
-    // 1. Verify PostgreSQL connection
     await prisma.$connect();
     console.log("✓ Connected to PostgreSQL database.");
-
-    // 2. Initialize Elasticsearch index
     await initElasticIndex();
-
-    // 3. Ensure test Ethereal senders exist
     await ensureDefaultSenders();
-
-    // 4. Reconcile any interrupted processing jobs from prior runs
     await reconcileDanglingJobs();
-
-    // 5. Start BullMQ worker process with configured concurrency
     workerInstance = startEmailWorker();
     console.log(`✓ BullMQ worker started with concurrency = ${env.worker.concurrency}`);
-
-    // 6. Listen for incoming API requests
     const server = app.listen(env.port, () => {
       console.log(`✓ ReachInbox API server listening on http://localhost:${env.port}`);
       console.log(`✓ Live BullMQ Dashboard available at http://localhost:${env.port}/admin/queues`);
     });
-
-    // Graceful Shutdown Handlers
     const shutdown = async (signal: string) => {
       console.log(`\nReceived ${signal}. Shutting down gracefully...`);
       if (workerInstance) {
