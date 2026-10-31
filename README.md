@@ -96,42 +96,6 @@ Open `http://localhost:5173`. Vite proxies `/api` to port 4000. From the repo ro
 
 ---
 
-## Repository Structure
-
-```text
-fullstack-email-job-scheduler/
-├── docker-compose.yml           # Postgres, Redis (AOF), Elasticsearch
-├── package.json                 # Monorepo root scripts
-├── README.md
-├── backend/
-│   ├── docker-compose.yml       # Standalone backend infra
-│   ├── package.json
-│   ├── tsconfig.json
-│   ├── prisma/
-│   │   └── schema.prisma        # User, Sender, Email, SlackIntegration
-│   └── src/
-│       ├── config/              # env, db, redis, elastic, passport
-│       ├── queues/              # email-queue definition
-│       ├── workers/             # emailWorker: claim, Lua limiter, send
-│       ├── services/            # smtp, rateLimiter, slack, elastic
-│       ├── controllers/         # auth, email, sender, slack
-│       ├── routes/              # Express routers
-│       └── server.ts            # Bootstrap and graceful shutdown
-└── frontend/
-    ├── index.html
-    ├── package.json
-    ├── vite.config.ts           # Dev proxy to :4000
-    ├── tailwind.config.js
-    ├── tsconfig.json
-    └── src/
-        ├── components/          # Layout, compose form, email list, SlackModal
-        ├── pages/               # Login, EmailList, EmailDetail, Compose
-        ├── services/            # auth, email, slack, http client
-        └── types/               # Shared TypeScript types
-```
-
----
-
 ---
 
 ## Architecture
@@ -186,14 +150,14 @@ flowchart TD
 
 ## Core Engineering Highlights
 
-### 1. Zero Cron Jobs and Idempotent Scheduling
-### 2. Restart Resilience
-### 3. Distributed Atomic Rate Limiter (Redis Lua)
-### 4. Provider Throttling
-### 5. Multi-Sender SMTP via Ethereal
-### 6. Elasticsearch Search with Fallback
-### 7. Live BullMQ Dashboard
-### 8. Slack Integration with the real OAuth (google)
+#### 1. Zero Cron Jobs and Idempotent Scheduling
+#### 2. Restart Resilience
+#### 3. Distributed Atomic Rate Limiter (Redis Lua)
+#### 4. Provider Throttling
+#### 5. Multi-Sender SMTP via Ethereal
+#### 6. Elasticsearch Search with Fallback
+#### 7. Live BullMQ Dashboard
+#### 8. Slack Integration with the real OAuth (google)
 ## Overview
 
 | Concern | Approach |
