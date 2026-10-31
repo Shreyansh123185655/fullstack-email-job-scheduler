@@ -24,41 +24,6 @@ Built strictly to the ReachInbox assignment constraints: **no cron jobs**, **Bul
 
 
 
-### Email Lifecycle
-
-```mermaid
-flowchart TD
-    A[POST /api/emails/schedule] --> B[Insert Email row: scheduled]
-    B --> C[Enqueue delayed job, jobId = email.id]
-    C --> D[Worker picks up job]
-    D --> E{Atomic claim:<br/>scheduled to processing}
-    E -->|0 rows| X[Skip: already handled]
-    E -->|1 row| F{Lua rate limit check}
-    F -->|over limit| G[Update scheduledAt to next hour<br/>moveToDelayed + DelayedError<br/>Slack alert]
-    F -->|ok| H[Provider throttle delay]
-    H --> I[Send via Ethereal SMTP]
-    I -->|success| J[status: sent, index in ES]
-    I -->|error| K[status: failed]
-```
-
-### Deferral Sequence
-
-```mermaid
-sequenceDiagram
-    participant W as Worker
-    participant R as Redis (Lua)
-    participant P as PostgreSQL
-    participant Q as BullMQ
-    participant S as Slack
-
-    W->>P: Claim email (scheduled to processing)
-    W->>R: Run rate-limit script
-    R-->>W: {0, current, ttl}
-    W->>P: scheduledAt = next hour boundary, status = scheduled
-    W->>Q: job.moveToDelayed(nextHour, token)
-    W->>S: Send rate-limit alert
-    W-->>Q: throw DelayedError
-```
 
 ---
 
@@ -325,6 +290,41 @@ fullstack-email-job-scheduler/
 <img width="1710" height="1107" alt="Screenshot 2026-10-31 at 9 46 02 AM" src="https://github.com/user-attachments/assets/c425bddc-aa05-4875-afcd-9811131a541a" />
 ---
 ## Architecture
+### Email Lifecycle
+
+```mermaid
+flowchart TD
+    A[POST /api/emails/schedule] --> B[Insert Email row: scheduled]
+    B --> C[Enqueue delayed job, jobId = email.id]
+    C --> D[Worker picks up job]
+    D --> E{Atomic claim:<br/>scheduled to processing}
+    E -->|0 rows| X[Skip: already handled]
+    E -->|1 row| F{Lua rate limit check}
+    F -->|over limit| G[Update scheduledAt to next hour<br/>moveToDelayed + DelayedError<br/>Slack alert]
+    F -->|ok| H[Provider throttle delay]
+    H --> I[Send via Ethereal SMTP]
+    I -->|success| J[status: sent, index in ES]
+    I -->|error| K[status: failed]
+```
+
+### Deferral Sequence
+
+```mermaid
+sequenceDiagram
+    participant W as Worker
+    participant R as Redis (Lua)
+    participant P as PostgreSQL
+    participant Q as BullMQ
+    participant S as Slack
+
+    W->>P: Claim email (scheduled to processing)
+    W->>R: Run rate-limit script
+    R-->>W: {0, current, ttl}
+    W->>P: scheduledAt = next hour boundary, status = scheduled
+    W->>Q: job.moveToDelayed(nextHour, token)
+    W->>S: Send rate-limit alert
+    W-->>Q: throw DelayedError
+```
 
 ```mermaid
 flowchart TD
