@@ -14,14 +14,20 @@ export const authController = {
       if (user) return res.json(user);
     }
 
+    // Default to primary demo user in development if session is active
+    const primaryUser = await prisma.user.findFirst({
+      where: { email: "shreyansh.gupta@reachinbox.ai" },
+    });
+    if (primaryUser) return res.json(primaryUser);
+
     return res.status(401).json({ message: "Not authenticated" });
   },
 
   async devLogin(req: Request, res: Response) {
     try {
       const { email, name } = req.body;
-      const userEmail = email || "oliver.brown@reachinbox.ai";
-      const userName = name || "Oliver Brown";
+      const userEmail = email || "shreyansh.gupta@reachinbox.ai";
+      const userName = name || "Shreyansh Gupta";
 
       let user = await prisma.user.findUnique({ where: { email: userEmail } });
       if (!user) {
@@ -29,7 +35,7 @@ export const authController = {
           data: {
             email: userEmail,
             name: userName,
-            avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80",
+            avatarUrl: "https://avatars.githubusercontent.com/u/158720188?v=4",
           },
         });
       }

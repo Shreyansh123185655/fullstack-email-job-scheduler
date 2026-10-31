@@ -32,23 +32,37 @@ export default function Sidebar() {
       isActive ? "bg-brand-50 font-semibold text-slate-800" : "text-slate-600 hover:bg-slate-50"
     }`;
 
+  const displayName = user?.name || "Shreyansh Gupta";
+  const displayEmail = user?.email || "shreyansh.gupta@reachinbox.ai";
+  const displayAvatar = user?.avatarUrl || "https://avatars.githubusercontent.com/u/158720188?v=4";
+
   return (
     <>
       <aside className="flex w-72 shrink-0 flex-col gap-4 p-4 border-r border-slate-100 bg-white">
-        <span className="px-1 font-mono text-4xl font-black tracking-tighter">ONB</span>
+        {/* ReachInbox Brand Logo & Title */}
+        <div className="flex items-center gap-3 px-1 py-1">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-tr from-brand-600 via-indigo-600 to-purple-600 text-white font-mono font-black text-xl shadow-md shadow-brand-500/20">
+            ONB
+          </div>
+          <div className="min-w-0 flex-1">
+            <span className="block font-bold text-slate-900 text-base leading-tight tracking-tight">ReachInbox</span>
+            <span className="block text-[11px] text-slate-400 font-medium tracking-tight">Email Job Scheduler</span>
+          </div>
+        </div>
 
+        {/* User Profile Card */}
         <div className="relative">
           <button
             onClick={() => setMenu((m) => !m)}
-            className="flex w-full items-center gap-3 rounded-xl bg-field p-3 text-left"
+            className="flex w-full items-center gap-3 rounded-xl bg-field p-3 text-left hover:bg-slate-100/70 transition"
             aria-expanded={menu}
           >
-            <Avatar name={user?.name || "User"} src={user?.avatarUrl} size={40} />
+            <Avatar name={displayName} src={displayAvatar} size={40} />
             <span className="min-w-0 flex-1">
-              <span className="block truncate text-sm font-medium">{user?.name || "User"}</span>
-              <span className="block truncate text-xs text-slate-500">{user?.email || ""}</span>
+              <span className="block truncate text-sm font-semibold text-slate-800">{displayName}</span>
+              <span className="block truncate text-xs text-slate-500">{displayEmail}</span>
             </span>
-            <ChevronDown size={16} className="text-slate-500" />
+            <ChevronDown size={16} className="text-slate-400" />
           </button>
           {menu && (
             <button
@@ -60,8 +74,8 @@ export default function Sidebar() {
           )}
         </div>
 
-        <Button className="w-full py-2.5" onClick={() => navigate("/compose")}>
-          Compose
+        <Button className="w-full py-2.5 shadow-sm" onClick={() => navigate("/compose")}>
+          Compose New Email
         </Button>
 
         <nav className="flex flex-col gap-1">

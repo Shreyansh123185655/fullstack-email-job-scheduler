@@ -17,15 +17,23 @@ router.get("/google", async (req, res, next) => {
   }
 
   // Graceful fallback for local development without live Google OAuth keys
-  console.log("[Dev Mode] Google OAuth credentials not set. Creating standard demo user session.");
+  console.log("[Dev Mode] Google OAuth credentials not set. Creating standard session for Shreyansh Gupta.");
   try {
-    let user = await prisma.user.findUnique({ where: { email: "oliver.brown@reachinbox.ai" } });
+    let user = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { email: "shreyansh.gupta@reachinbox.ai" },
+          { name: "Shreyansh Gupta" },
+        ],
+      },
+    });
+
     if (!user) {
       user = await prisma.user.create({
         data: {
-          email: "oliver.brown@reachinbox.ai",
-          name: "Oliver Brown",
-          avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80",
+          email: "shreyansh.gupta@reachinbox.ai",
+          name: "Shreyansh Gupta",
+          avatarUrl: "https://avatars.githubusercontent.com/u/158720188?v=4",
         },
       });
     }
