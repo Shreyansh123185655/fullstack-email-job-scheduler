@@ -1,23 +1,8 @@
-# ReachInbox Distributed Email Scheduler & Dashboard
+# ReachInbox Email Scheduler Project demonstration
 
-A production-grade, distributed email scheduling service with a real-time dashboard. It handles high-throughput dispatch, atomic concurrency, per-sender rate limiting, and zero job loss across server restarts.
-
-Built strictly to the ReachInbox assignment constraints: **no cron jobs**, **BullMQ + Redis**, **idempotent dispatch**, **Redis Lua rate limiting**, **Ethereal fake SMTP**, **Elasticsearch search**, **live Bull-Board dashboard**, and **Slack alerts on rate-limit hits**.
-
+My deployed link from the scratch
+https://frontend-rouge-two-96.vercel.app
 ---
-
-## Overview
-
-| Concern | Approach |
-| --- | --- |
-| Scheduling | BullMQ delayed jobs in Redis (no `node-cron`, `setInterval`, or `agenda`) |
-| Idempotency | `jobId = email.id` plus an atomic PostgreSQL claim before any SMTP call |
-| Persistence | Redis AOF (`appendonly yes`) plus startup reconciliation of stuck jobs |
-| Rate limiting | Atomic Redis Lua script, per sender, per hour, shared by all workers |
-| Throttling | Minimum gap between sends per sender via `last_send:{senderId}` |
-| Search | Elasticsearch fuzzy `multi_match` with PostgreSQL `ILIKE` fallback |
-| Observability | Bull-Board at `/admin/queues`, Slack alerts on rate-limit hits |
-
 ---
 
 [🎥
@@ -28,8 +13,7 @@ https://github.com/user-attachments/assets/82a66ef5-3446-43be-a6da-eeca856e0639
 [🎥 Full project demontration]
 https://github.com/user-attachments/assets/6c1f913d-159d-4524-8618-064dfb100ccb
 
-
-
+(This is the main Video) Here i have also used the elastic search in the project.
 
 ---
 
@@ -48,13 +32,13 @@ https://github.com/user-attachments/assets/6c1f913d-159d-4524-8618-064dfb100ccb
 | Infrastructure | Docker Compose |
 
 ---
-
-## Getting Started
+## Steps to execute my project first cloning it then simultaneously setup the backend frontend along with the Docker , Bull Mq and Redis 
 
 ### Prerequisites
+
 - Node.js 18+ and npm
 - PostgreSQL 14+, Redis 7+ (local or Docker)
-- Elasticsearch 8+ (optional, Docker)
+- Elasticsearch 8+ 
 
 ### 1. Clone
 ```bash
@@ -91,7 +75,7 @@ npm run dev
 | --- | --- |
 | API | `http://localhost:4000/api` |
 | Health | `http://localhost:4000/health` |
-| Bull-Board | `http://localhost:4000/admin/queues` |
+| Bull-Board | `http://localhost:4000/admin/queues` | (It also depends on the individual system and the available port system)
 
 ### 4. Run the Frontend
 ```bash
@@ -102,9 +86,6 @@ npm run dev
 Open `http://localhost:5173`. Vite proxies `/api` to port 4000. From the repo root you can also run `npm run dev:backend` and `npm run dev:frontend`.
 
 ---
-
-
-
 
 ## Repository Structure
 
@@ -142,13 +123,6 @@ fullstack-email-job-scheduler/
 
 ---
 
-## Future Roadmap
-
-- **Scale:** horizontal worker pools, per-tenant queues, Redis Cluster.
-- **Delivery:** real SMTP providers, bounce and retry policies, webhooks for delivery events.
-- **Observability:** structured logging, metrics (Prometheus), tracing.
-- **Product:** campaign sequences, templates, per-recipient timezones.
-
 ---
 ## Screenshots
 
@@ -162,7 +136,6 @@ fullstack-email-job-scheduler/
 ---
 ## Architecture
 ### Email Lifecycle
-
 ```mermaid
 flowchart TD
     A[POST /api/emails/schedule] --> B[Insert Email row: scheduled]
@@ -177,9 +150,7 @@ flowchart TD
     I -->|success| J[status: sent, index in ES]
     I -->|error| K[status: failed]
 ```
-
 ### Deferral Sequence
-
 ```mermaid
 sequenceDiagram
     participant W as Worker
@@ -196,7 +167,6 @@ sequenceDiagram
     W->>S: Send rate-limit alert
     W-->>Q: throw DelayedError
 ```
-
 ```mermaid
 flowchart TD
     UI[React 18 + Vite Dashboard] -->|REST /api| API[Express API :4000]
@@ -217,23 +187,8 @@ flowchart TD
 ## Core Engineering Highlights
 
 ### 1. Zero Cron Jobs and Idempotent Scheduling
-- **No cron or pollers.** Every email is a BullMQ delayed job in Redis.
-- **Idempotent enqueue.** `jobId = email.id` (UUID from PostgreSQL) prevents duplicate enqueues.
-- **Atomic claim.** Before touching SMTP, the worker runs:
-  ```sql
-  UPDATE "Email"
-  SET "status" = 'processing', "updatedAt" = NOW()
-  WHERE "id" = :emailId AND "status" = 'scheduled';
-  ```
-  If zero rows update (another worker took it, or a retry), the worker exits immediately, so no email is sent twice.
-
 ### 2. Restart Resilience
-- **Redis AOF** keeps in-flight delayed jobs across Redis and server restarts.
-- **Self-healing reconciliation.** On startup, `reconcileDanglingJobs()` moves emails stuck in `processing` after an abrupt termination back to `scheduled`, without duplicates or lost jobs.
-
 ### 3. Distributed Atomic Rate Limiter (Redis Lua)
-Hourly limits per sender are enforced atomically across all workers:
-
 ```lua
 local key = KEYS[1]
 local limit = tonumber(ARGV[1])
@@ -250,28 +205,23 @@ else
   return { 1, new_count, redis.call('ttl', key) }
 end
 ```
-
-**Next-hour slotted deferral.** When a limit is hit, jobs are never failed or dropped:
-1. Compute the next hour boundary: `nextHour = (currentHour + 1) * 3600000`.
-2. Update `scheduledAt` in PostgreSQL.
-3. Call `job.moveToDelayed(nextHour, token)` and throw `DelayedError()`.
-4. Dispatch a Slack alert to the user's connected workspace.
-
 ### 4. Provider Throttling
-A minimum gap (default 2s) between consecutive sends per sender, tracked in Redis (`last_send:{senderId}`), mimics ISP throttling (SendGrid, SES, Mailgun).
-
 ### 5. Multi-Sender SMTP via Ethereal
-Multiple sender accounts are stored in PostgreSQL, each with its own SMTP host, port, credentials, and hourly limit. If none exist on first boot, test accounts are provisioned with `nodemailer.createTestAccount()` and preview URLs are logged for every dispatch.
-
 ### 6. Elasticsearch Search with Fallback
-Emails are indexed into an `emails` index. Search runs a fuzzy `multi_match` over `to`, `subject`, and `body`. If Elasticsearch is unavailable, queries transparently fall back to PostgreSQL `ILIKE`.
-
 ### 7. Live BullMQ Dashboard
-Bull-Board at `http://localhost:4000/admin/queues` shows active, delayed, completed, and failed jobs in real time.
+### 8. Slack Integration with the real OAuth (google)
+## Overview
 
-### 8. Slack Integration
-- **OAuth flow** (`/api/slack/oauth`) exchanges credentials and stores the incoming webhook per user.
-- **Direct webhook paste** in the UI for quick testing without a Slack app.
-- Rich alert posted in real time whenever an hourly limit is hit.
+| Concern | Approach |
+| --- | --- |
+| Scheduling | BullMQ delayed jobs in Redis (no `node-cron`, `setInterval`, or `agenda`) |
+| Idempotency | `jobId = email.id` plus an atomic PostgreSQL claim before any SMTP call |
+| Persistence | Redis AOF (`appendonly yes`) plus startup reconciliation of stuck jobs |
+| Rate limiting | Atomic Redis Lua script, per sender, per hour, shared by all workers |
+| Throttling | Minimum gap between sends per sender via `last_send:{senderId}` |
+| Search | Elasticsearch fuzzy `multi_match` with PostgreSQL `ILIKE` fallback |
+| Observability | Bull-Board at `/admin/queues`, Slack alerts on rate-limit hits |
+
+
 
 ---
