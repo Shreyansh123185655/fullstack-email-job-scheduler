@@ -15,14 +15,12 @@ export function startEmailWorker() {
       const { emailId, senderId, userId, delaySeconds, hourlyLimit } = job.data;
       const effectiveHourlyLimit = hourlyLimit || env.worker.maxEmailsPerHourPerSender;
       const interEmailDelaySec = delaySeconds || env.worker.minDelayBetweenEmailsSec;
-
       console.log(`[Worker] Processing job ${job.id} for email ${emailId}`);
       const updateResult = await prisma.$executeRaw`
         UPDATE "Email"
         SET "status" = 'processing', "updatedAt" = NOW()
         WHERE "id" = ${emailId} AND "status" = 'scheduled'
       `;
-
       if (updateResult === 0) {
         console.log(`[Worker] Email ${emailId} is already processed or not in scheduled state. Skipping.`);
         return { skipped: true, reason: "Already processed or claimed" };
@@ -47,8 +45,6 @@ export function startEmailWorker() {
         );
 
         const nextHourDate = new Date(rateLimitCheck.nextWindowTimestamp);
-
-        // Revert status to scheduled with new scheduledAt timestamp in DB
         await prisma.email.update({
           where: { id: emailId },
           data: {
@@ -140,7 +136,6 @@ export function startEmailWorker() {
       concurrency: env.worker.concurrency,
     }
   );
-
   worker.on("completed", (job) => {
     console.log(`[Worker] Job ${job.id} completed successfully.`);
   });
