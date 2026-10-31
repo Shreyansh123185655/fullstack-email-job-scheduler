@@ -2,15 +2,11 @@ import { useState } from "react";
 import { CalendarDays } from "lucide-react";
 import { toLocalInput, tomorrowAt } from "../../utils/date";
 import Button from "../ui/Button";
-
 interface Props { value: string | null; onDone: (iso: string | null) => void; onCancel: () => void }
-
 const presets: [string, number][] = [["Tomorrow", 9], ["Tomorrow, 10:00 AM", 10], ["Tomorrow, 11:00 AM", 11], ["Tomorrow, 3:00 PM", 15]];
-
 export default function SendLaterPopover({ value, onDone, onCancel }: Props) {
   const [picked, setPicked] = useState(value ? toLocalInput(new Date(value)) : "");
   const invalid = picked !== "" && new Date(picked) <= new Date();
-
   return (
     <div className="absolute right-0 top-full z-20 mt-2 w-80 rounded-xl border bg-white p-5 shadow-xl" role="dialog" aria-label="Send later">
       <h2 className="mb-4 font-medium">Send Later</h2>
