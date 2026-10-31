@@ -3,26 +3,22 @@ import { CheckCircle2, MessageSquare, Power, Send, X } from "lucide-react";
 import { slackService, SlackStatus } from "../../services/slackService";
 import Button from "../ui/Button";
 import { useToast } from "../ui/Toast";
-
 interface SlackModalProps {
   status: SlackStatus;
   onClose: () => void;
   onRefresh: () => void;
 }
-
 export default function SlackModal({ status, onClose, onRefresh }: SlackModalProps) {
   const toast = useToast();
   const [webhookUrl, setWebhookUrl] = useState("");
   const [channel, setChannel] = useState("");
   const [loading, setLoading] = useState(false);
   const [testing, setTesting] = useState(false);
-
   const handleConnectWebhook = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!webhookUrl.trim() || !webhookUrl.startsWith("https://hooks.slack.com/")) {
       return toast("error", "Please provide a valid https://hooks.slack.com/... URL");
     }
-
     setLoading(true);
     try {
       await slackService.connectWebhook(webhookUrl.trim(), channel.trim() || undefined);
@@ -35,7 +31,6 @@ export default function SlackModal({ status, onClose, onRefresh }: SlackModalPro
       setLoading(false);
     }
   };
-
   const handleDisconnect = async () => {
     setLoading(true);
     try {
@@ -48,7 +43,6 @@ export default function SlackModal({ status, onClose, onRefresh }: SlackModalPro
       setLoading(false);
     }
   };
-
   const handleTestAlert = async () => {
     setTesting(true);
     try {
@@ -60,7 +54,6 @@ export default function SlackModal({ status, onClose, onRefresh }: SlackModalPro
       setTesting(false);
     }
   };
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
       <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
