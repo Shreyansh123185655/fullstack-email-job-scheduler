@@ -1,4 +1,3 @@
-<img width="1305" height="929" alt="Screenshot 2026-10-31 at 2 20 41 PM" src="https://github.com/user-attachments/assets/9ee3be0e-8ac5-4626-b507-bc61fba62992" />
 # ReachInbox Email Scheduler Project demonstration
 
 My deployed link from the scratch
