@@ -1,7 +1,6 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
 body { @apply bg-white font-sans text-slate-900 antialiased; }
 :focus-visible { @apply outline-2 outline-offset-2 outline-brand-500; }
 .editor:empty:before { content: attr(data-placeholder); @apply text-slate-400; }
