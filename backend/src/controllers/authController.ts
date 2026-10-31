@@ -6,15 +6,11 @@ export const authController = {
     if (req.isAuthenticated && req.isAuthenticated() && req.user) {
       return res.json(req.user);
     }
-
-    // If session has userId stored manually
     const sessionUserId = (req.session as any)?.userId;
     if (sessionUserId) {
       const user = await prisma.user.findUnique({ where: { id: sessionUserId } });
       if (user) return res.json(user);
     }
-
-    // Default to primary demo user in development if session is active
     const primaryUser = await prisma.user.findFirst({
       where: { email: "shreyansh.gupta@reachinbox.ai" },
     });
