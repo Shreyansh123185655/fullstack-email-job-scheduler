@@ -189,22 +189,6 @@ flowchart TD
 ### 1. Zero Cron Jobs and Idempotent Scheduling
 ### 2. Restart Resilience
 ### 3. Distributed Atomic Rate Limiter (Redis Lua)
-```lua
-local key = KEYS[1]
-local limit = tonumber(ARGV[1])
-local current = tonumber(redis.call('get', key) or '0')
-
-if current >= limit then
-  local ttl = redis.call('ttl', key)
-  return { 0, current, ttl }
-else
-  local new_count = redis.call('incr', key)
-  if new_count == 1 then
-    redis.call('expire', key, 3600)
-  end
-  return { 1, new_count, redis.call('ttl', key) }
-end
-```
 ### 4. Provider Throttling
 ### 5. Multi-Sender SMTP via Ethereal
 ### 6. Elasticsearch Search with Fallback
