@@ -4,7 +4,6 @@ import { Navigate, useNavigate } from "react-router-dom";
 import Button from "../components/ui/Button";
 import { useToast } from "../components/ui/Toast";
 import { useAuth } from "../context/AuthContext";
-
 export default function LoginPage() {
   const { user, loginWithGoogle, loginWithEmail } = useAuth();
   const navigate = useNavigate();
@@ -12,9 +11,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState("shreyansh.gupta@reachinbox.ai");
   const [password, setPassword] = useState("password123");
   const [busy, setBusy] = useState<"google" | "email" | null>(null);
-
   if (user) return <Navigate to="/scheduled" replace />;
-
   const run = async (kind: "google" | "email", fn: () => Promise<void>) => {
     setBusy(kind);
     try {
@@ -26,12 +23,10 @@ export default function LoginPage() {
       setBusy(null);
     }
   };
-
   const submit = (e: FormEvent) => {
     e.preventDefault();
     run("email", () => loginWithEmail(email, password));
   };
-
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-50/50 p-4">
       <div className="w-full max-w-md rounded-3xl border border-slate-200/80 bg-white p-10 shadow-xl shadow-slate-200/40">
@@ -44,7 +39,6 @@ export default function LoginPage() {
           <p className="mt-1 text-xs text-slate-500">
             Distributed Email Queue & Concurrency Engine
           </p>
-
           {/* Developer Tag */}
           <div className="mt-3 flex items-center gap-2 rounded-full border border-slate-200/70 bg-slate-50 px-3 py-1">
             <img
@@ -55,7 +49,6 @@ export default function LoginPage() {
             <span className="text-[11px] font-medium text-slate-600">Built by Shreyansh Gupta</span>
           </div>
         </div>
-
         {/* Google OAuth Login Button */}
         <button
           onClick={() => run("google", loginWithGoogle)}
@@ -70,13 +63,11 @@ export default function LoginPage() {
           </svg>
           {busy === "google" ? "Authenticating…" : "Login with Google"}
         </button>
-
         <div className="my-6 flex items-center gap-4 text-xs text-slate-400">
           <hr className="flex-1 border-slate-200" />
           <span>or sign in with email</span>
           <hr className="flex-1 border-slate-200" />
         </div>
-
         {/* Email Login Form */}
         <form onSubmit={submit} className="flex flex-col gap-3">
           <input
