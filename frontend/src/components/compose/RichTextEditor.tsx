@@ -1,6 +1,5 @@
 import { useRef } from "react";
 import { AlignCenter, Bold, ChevronsUpDown, IndentDecrease, IndentIncrease, Italic, List, ListOrdered, Quote, Redo2, Strikethrough, Type, Underline, Undo2, type LucideIcon } from "lucide-react";
-
 const tools: (null | [string, LucideIcon, string?])[] = [
   ["undo", Undo2], ["redo", Redo2], null,
   ["fontSize", Type, "4"], null,
@@ -10,11 +9,9 @@ const tools: (null | [string, LucideIcon, string?])[] = [
   ["indent", IndentIncrease], ["outdent", IndentDecrease], ["formatBlock", Quote, "blockquote"], null,
   ["strikeThrough", Strikethrough],
 ];
-
 export default function RichTextEditor({ onChange }: { onChange: (html: string) => void }) {
   const ref = useRef<HTMLDivElement>(null);
   const exec = (cmd: string, arg?: string) => { ref.current?.focus(); document.execCommand(cmd, false, arg); onChange(ref.current?.innerHTML ?? ""); };
-
   return (
     <div className="flex min-h-[420px] flex-col rounded-2xl bg-[#fafafa] p-6">
       <div ref={ref} contentEditable suppressContentEditableWarning data-placeholder="Type your reply…" role="textbox" aria-label="Email body" aria-multiline
