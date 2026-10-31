@@ -9,19 +9,15 @@ import { useAuth } from "../context/AuthContext";
 import { emailService } from "../services/emailService";
 import type { Email } from "../types";
 import { detailLabel } from "../utils/date";
-
 export default function EmailDetailPage() {
   const { id = "" } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   const [email, setEmail] = useState<Email | null>(null);
   const [error, setError] = useState<string | null>(null);
-
   useEffect(() => { emailService.get(id).then(setEmail).catch((e: Error) => setError(e.message)); }, [id]);
-
   if (error) return <StateMessage title="We couldn't open this email" hint={error} action={<Button onClick={() => navigate(-1)}>Go back</Button>} />;
   if (!email) return <Spinner label="Opening email…" />;
-
   return (
     <article>
       <header className="flex items-center gap-4">
