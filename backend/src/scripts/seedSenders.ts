@@ -1,11 +1,8 @@
 import { prisma } from "../config/db";
 import { ensureDefaultSenders } from "../services/smtpService";
-
 async function main() {
   console.log("Seeding senders and demo user...");
   await ensureDefaultSenders();
-
-  // Create standard demo user if none exists
   const user = await prisma.user.upsert({
     where: { email: "oliver.brown@reachinbox.ai" },
     create: {
