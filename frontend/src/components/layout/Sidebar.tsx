@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
-import { Activity, ChevronDown, Clock, ExternalLink, LogOut, MessageSquare, Send } from "lucide-react";
+import { Activity, ChevronDown, Clock, ExternalLink, LogOut, Mail, MessageSquare, Send } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { emailService } from "../../services/emailService";
 import { slackService, SlackStatus } from "../../services/slackService";
@@ -41,8 +41,8 @@ export default function Sidebar() {
       <aside className="flex w-72 shrink-0 flex-col gap-4 p-4 border-r border-slate-100 bg-white">
         {/* ReachInbox Brand Logo & Title */}
         <div className="flex items-center gap-3 px-1 py-1">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-tr from-brand-600 via-indigo-600 to-purple-600 text-white font-mono font-black text-xl shadow-md shadow-brand-500/20">
-            ONB
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-600 text-white shadow-md shadow-brand-500/20">
+            <Mail size={20} className="stroke-[2.5]" />
           </div>
           <div className="min-w-0 flex-1">
             <span className="block font-bold text-slate-900 text-base leading-tight tracking-tight">ReachInbox</span>

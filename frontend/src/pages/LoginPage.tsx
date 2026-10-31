@@ -1,3 +1,4 @@
+import { Mail } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import Button from "../components/ui/Button";
@@ -36,8 +37,8 @@ export default function LoginPage() {
       <div className="w-full max-w-md rounded-3xl border border-slate-200/80 bg-white p-10 shadow-xl shadow-slate-200/40">
         {/* Brand Header */}
         <div className="mb-8 flex flex-col items-center text-center">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-tr from-brand-600 via-indigo-600 to-purple-600 text-white font-mono font-black text-2xl shadow-lg shadow-brand-500/25 mb-4">
-            ONB
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-tr from-brand-600 to-indigo-600 text-white shadow-lg shadow-brand-500/25 mb-4">
+            <Mail size={28} className="stroke-[2.5]" />
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900">ReachInbox Scheduler</h1>
           <p className="mt-1 text-xs text-slate-500">
