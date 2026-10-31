@@ -41,8 +41,8 @@ export default function Sidebar() {
       <aside className="flex w-72 shrink-0 flex-col gap-4 p-4 border-r border-slate-100 bg-white">
         {/* ReachInbox Brand Logo & Title */}
         <div className="flex items-center gap-3 px-1 py-1">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-600 text-white shadow-md shadow-brand-500/20">
-            <Mail size={20} className="stroke-[2.5]" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-950 text-white shadow-sm border border-slate-800">
+            <Mail size={18} className="stroke-[2] text-white" />
           </div>
           <div className="min-w-0 flex-1">
             <span className="block font-bold text-slate-900 text-base leading-tight tracking-tight">ReachInbox</span>
