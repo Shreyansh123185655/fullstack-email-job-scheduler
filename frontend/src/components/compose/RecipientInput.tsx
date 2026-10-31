@@ -1,15 +1,12 @@
 import { useRef, useState, type KeyboardEvent } from "react";
 import { Upload, X } from "lucide-react";
 import { extractEmails, readFileAsText } from "../../utils/csv";
-
 interface Props { recipients: string[]; onChange: (list: string[]) => void; onError: (msg: string) => void }
-const VISIBLE = 3; // Figma shows three chips then "+N"
-
+const VISIBLE = 3;
 export default function RecipientInput({ recipients, onChange, onError }: Props) {
   const [draft, setDraft] = useState("");
   const [expanded, setExpanded] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
-
   const add = (text: string) => {
     const found = extractEmails(text);
     if (text.trim() && !found.length) onError("That doesn't look like an email address.");
@@ -29,10 +26,8 @@ export default function RecipientInput({ recipients, onChange, onError }: Props)
     } catch (e) { onError((e as Error).message); }
     if (fileRef.current) fileRef.current.value = "";
   };
-
   const shown = expanded ? recipients : recipients.slice(0, VISIBLE);
   const hidden = recipients.length - shown.length;
-
   return (
     <div className="flex flex-1 items-center gap-2 border-b pb-2">
       <div className="flex flex-1 flex-wrap items-center gap-2">
