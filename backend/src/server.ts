@@ -66,12 +66,31 @@ app.use("/api/emails", emailRoutes);
 app.use("/api/senders", senderRoutes);
 app.use("/api/slack", slackRoutes);
 
-// Healthcheck endpoint
-app.get("/health", (req, res) => {
+// Root endpoint & Healthcheck
+app.get("/", (req, res) => {
+  res.json({
+    status: "ok",
+    service: "ReachInbox Email Scheduler Backend",
+    version: "1.0.0",
+    developer: "Shreyansh Gupta",
+    frontend: env.frontendUrl,
+    bullBoard: `http://localhost:${env.port}/admin/queues`,
+    endpoints: {
+      health: "/health",
+      apiHealth: "/api/health",
+      emails: "/api/emails",
+      senders: "/api/senders",
+      slack: "/api/slack/status",
+    },
+  });
+});
+
+app.get(["/health", "/api/health"], (req, res) => {
   res.json({
     status: "ok",
     timestamp: new Date().toISOString(),
     service: "reachinbox-email-scheduler",
+    developer: "Shreyansh Gupta",
   });
 });
 
