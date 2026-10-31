@@ -20,74 +20,11 @@ Built strictly to the ReachInbox assignment constraints: **no cron jobs**, **Bul
 
 ---
 
+[🎥 Watch the Demo Video](https://drive.google.com/file/d/16CSTP69HOhyJlMQAolZ4HCv_S82tdyaF/view?usp=sharing)
 
-
-
-
-
+[🎥 Watch the Demo Video](https://drive.google.com/file/d/1ZM3jhVqVX16UoH3D8tbdX1OIRlm9vYd4/view?usp=sharing)
 ---
 
-## Core Engineering Highlights
-
-### 1. Zero Cron Jobs and Idempotent Scheduling
-- **No cron or pollers.** Every email is a BullMQ delayed job in Redis.
-- **Idempotent enqueue.** `jobId = email.id` (UUID from PostgreSQL) prevents duplicate enqueues.
-- **Atomic claim.** Before touching SMTP, the worker runs:
-  ```sql
-  UPDATE "Email"
-  SET "status" = 'processing', "updatedAt" = NOW()
-  WHERE "id" = :emailId AND "status" = 'scheduled';
-  ```
-  If zero rows update (another worker took it, or a retry), the worker exits immediately, so no email is sent twice.
-
-### 2. Restart Resilience
-- **Redis AOF** keeps in-flight delayed jobs across Redis and server restarts.
-- **Self-healing reconciliation.** On startup, `reconcileDanglingJobs()` moves emails stuck in `processing` after an abrupt termination back to `scheduled`, without duplicates or lost jobs.
-
-### 3. Distributed Atomic Rate Limiter (Redis Lua)
-Hourly limits per sender are enforced atomically across all workers:
-
-```lua
-local key = KEYS[1]
-local limit = tonumber(ARGV[1])
-local current = tonumber(redis.call('get', key) or '0')
-
-if current >= limit then
-  local ttl = redis.call('ttl', key)
-  return { 0, current, ttl }
-else
-  local new_count = redis.call('incr', key)
-  if new_count == 1 then
-    redis.call('expire', key, 3600)
-  end
-  return { 1, new_count, redis.call('ttl', key) }
-end
-```
-
-**Next-hour slotted deferral.** When a limit is hit, jobs are never failed or dropped:
-1. Compute the next hour boundary: `nextHour = (currentHour + 1) * 3600000`.
-2. Update `scheduledAt` in PostgreSQL.
-3. Call `job.moveToDelayed(nextHour, token)` and throw `DelayedError()`.
-4. Dispatch a Slack alert to the user's connected workspace.
-
-### 4. Provider Throttling
-A minimum gap (default 2s) between consecutive sends per sender, tracked in Redis (`last_send:{senderId}`), mimics ISP throttling (SendGrid, SES, Mailgun).
-
-### 5. Multi-Sender SMTP via Ethereal
-Multiple sender accounts are stored in PostgreSQL, each with its own SMTP host, port, credentials, and hourly limit. If none exist on first boot, test accounts are provisioned with `nodemailer.createTestAccount()` and preview URLs are logged for every dispatch.
-
-### 6. Elasticsearch Search with Fallback
-Emails are indexed into an `emails` index. Search runs a fuzzy `multi_match` over `to`, `subject`, and `body`. If Elasticsearch is unavailable, queries transparently fall back to PostgreSQL `ILIKE`.
-
-### 7. Live BullMQ Dashboard
-Bull-Board at `http://localhost:4000/admin/queues` shows active, delayed, completed, and failed jobs in real time.
-
-### 8. Slack Integration
-- **OAuth flow** (`/api/slack/oauth`) exchanges credentials and stores the incoming webhook per user.
-- **Direct webhook paste** in the UI for quick testing without a Slack app.
-- Rich alert posted in real time whenever an hourly limit is hit.
-
----
 
 ## Tech Stack
 
@@ -342,7 +279,65 @@ flowchart TD
     DEF --> SLACK[Slack webhook alert]
     API --> BB[Bull-Board /admin/queues]
 ```
-## Submission and Reviewer Access
 
-- **GitHub Repository:** [Shreyansh123185655/fullstack-email-job-scheduler](https://github.com/Shreyansh123185655/fullstack-email-job-scheduler)
-- **Collaborator Access Granted:** `Mitrajit` and `Yadav036`
+## Core Engineering Highlights
+
+### 1. Zero Cron Jobs and Idempotent Scheduling
+- **No cron or pollers.** Every email is a BullMQ delayed job in Redis.
+- **Idempotent enqueue.** `jobId = email.id` (UUID from PostgreSQL) prevents duplicate enqueues.
+- **Atomic claim.** Before touching SMTP, the worker runs:
+  ```sql
+  UPDATE "Email"
+  SET "status" = 'processing', "updatedAt" = NOW()
+  WHERE "id" = :emailId AND "status" = 'scheduled';
+  ```
+  If zero rows update (another worker took it, or a retry), the worker exits immediately, so no email is sent twice.
+
+### 2. Restart Resilience
+- **Redis AOF** keeps in-flight delayed jobs across Redis and server restarts.
+- **Self-healing reconciliation.** On startup, `reconcileDanglingJobs()` moves emails stuck in `processing` after an abrupt termination back to `scheduled`, without duplicates or lost jobs.
+
+### 3. Distributed Atomic Rate Limiter (Redis Lua)
+Hourly limits per sender are enforced atomically across all workers:
+
+```lua
+local key = KEYS[1]
+local limit = tonumber(ARGV[1])
+local current = tonumber(redis.call('get', key) or '0')
+
+if current >= limit then
+  local ttl = redis.call('ttl', key)
+  return { 0, current, ttl }
+else
+  local new_count = redis.call('incr', key)
+  if new_count == 1 then
+    redis.call('expire', key, 3600)
+  end
+  return { 1, new_count, redis.call('ttl', key) }
+end
+```
+
+**Next-hour slotted deferral.** When a limit is hit, jobs are never failed or dropped:
+1. Compute the next hour boundary: `nextHour = (currentHour + 1) * 3600000`.
+2. Update `scheduledAt` in PostgreSQL.
+3. Call `job.moveToDelayed(nextHour, token)` and throw `DelayedError()`.
+4. Dispatch a Slack alert to the user's connected workspace.
+
+### 4. Provider Throttling
+A minimum gap (default 2s) between consecutive sends per sender, tracked in Redis (`last_send:{senderId}`), mimics ISP throttling (SendGrid, SES, Mailgun).
+
+### 5. Multi-Sender SMTP via Ethereal
+Multiple sender accounts are stored in PostgreSQL, each with its own SMTP host, port, credentials, and hourly limit. If none exist on first boot, test accounts are provisioned with `nodemailer.createTestAccount()` and preview URLs are logged for every dispatch.
+
+### 6. Elasticsearch Search with Fallback
+Emails are indexed into an `emails` index. Search runs a fuzzy `multi_match` over `to`, `subject`, and `body`. If Elasticsearch is unavailable, queries transparently fall back to PostgreSQL `ILIKE`.
+
+### 7. Live BullMQ Dashboard
+Bull-Board at `http://localhost:4000/admin/queues` shows active, delayed, completed, and failed jobs in real time.
+
+### 8. Slack Integration
+- **OAuth flow** (`/api/slack/oauth`) exchanges credentials and stores the incoming webhook per user.
+- **Direct webhook paste** in the UI for quick testing without a Slack app.
+- Rich alert posted in real time whenever an hourly limit is hit.
+
+---
