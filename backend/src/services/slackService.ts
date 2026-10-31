@@ -10,21 +10,13 @@ export interface SlackRateLimitAlertData {
   nextWindowTimestamp: number;
   userId?: string | null;
 }
-
 export const slackService = {
-  /**
-   * Generates the Slack OAuth URL for connecting a Slack workspace
-   */
   getOAuthUrl(state: string): string {
     const scopes = ["incoming-webhook", "chat:write"].join(",");
     return `https://slack.com/oauth/v2/authorize?client_id=${env.slack.clientId}&scope=${scopes}&redirect_uri=${encodeURIComponent(
       env.slack.redirectUri
     )}&state=${encodeURIComponent(state)}`;
   },
-
-  /**
-   * Exchanges authorization code with Slack OAuth v2 API
-   */
   async exchangeCodeForToken(code: string, userId: string) {
     const response = await axios.post(
       "https://slack.com/api/oauth.v2.access",
@@ -71,10 +63,6 @@ export const slackService = {
 
     return integration;
   },
-
-  /**
-   * Connect a webhook directly (for easy manual testing / grading)
-   */
   async connectWebhookDirectly(userId: string, webhookUrl: string, channelName?: string) {
     return prisma.slackIntegration.upsert({
       where: { userId },
@@ -91,19 +79,11 @@ export const slackService = {
       },
     });
   },
-
-  /**
-   * Disconnect Slack for a user
-   */
   async disconnect(userId: string) {
     return prisma.slackIntegration.deleteMany({
       where: { userId },
     });
   },
-
-  /**
-   * Get current connection status for a user
-   */
   async getStatus(userId: string) {
     const integration = await prisma.slackIntegration.findUnique({
       where: { userId },
@@ -116,11 +96,6 @@ export const slackService = {
         : null,
     };
   },
-
-  /**
-   * Dispatches a live rate limit hit alert to Slack
-   * Uses user integration if available, or falls back to env SLACK_WEBHOOK_URL
-   */
   async notifyRateLimitHit(alert: SlackRateLimitAlertData): Promise<boolean> {
     try {
       let webhookUrl: string | null = null;
