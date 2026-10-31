@@ -8,7 +8,6 @@ import type { EmailCounts } from "../../types";
 import Avatar from "../ui/Avatar";
 import Button from "../ui/Button";
 import SlackModal from "./SlackModal";
-
 export default function Sidebar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -17,25 +16,20 @@ export default function Sidebar() {
   const [menu, setMenu] = useState(false);
   const [slackStatus, setSlackStatus] = useState<SlackStatus>({ connected: false });
   const [slackModalOpen, setSlackModalOpen] = useState(false);
-
   const fetchSlack = () => {
     slackService.getStatus().then(setSlackStatus).catch(() => {});
   };
-
   useEffect(() => {
     emailService.counts().then(setCounts).catch(() => {});
     fetchSlack();
   }, [pathname]);
-
   const link = ({ isActive }: { isActive: boolean }) =>
     `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm ${
       isActive ? "bg-brand-50 font-semibold text-slate-800" : "text-slate-600 hover:bg-slate-50"
     }`;
-
   const displayName = user?.name || "Shreyansh Gupta";
   const displayEmail = user?.email || "shreyansh.gupta@reachinbox.ai";
   const displayAvatar = user?.avatarUrl || "https://avatars.githubusercontent.com/u/158720188?v=4";
-
   return (
     <>
       <aside className="flex w-72 shrink-0 flex-col gap-4 p-4 border-r border-slate-100 bg-white">
@@ -49,7 +43,6 @@ export default function Sidebar() {
             <span className="block text-[11px] text-slate-400 font-medium tracking-tight">Email Job Scheduler</span>
           </div>
         </div>
-
         {/* User Profile Card */}
         <div className="relative">
           <button
@@ -73,11 +66,9 @@ export default function Sidebar() {
             </button>
           )}
         </div>
-
         <Button className="w-full py-2.5 shadow-sm" onClick={() => navigate("/compose")}>
           Compose New Email
         </Button>
-
         <nav className="flex flex-col gap-1">
           <span className="px-3 pb-1 pt-2 text-xs text-slate-400 uppercase tracking-wider font-semibold">Core</span>
           <NavLink to="/scheduled" className={link}>
@@ -91,7 +82,6 @@ export default function Sidebar() {
             <span className="text-slate-500 text-xs font-semibold">{counts.sent}</span>
           </NavLink>
         </nav>
-
         <div className="mt-auto space-y-2 pt-4 border-t border-slate-100">
           <span className="px-3 text-xs text-slate-400 uppercase tracking-wider font-semibold">Integrations</span>
 
@@ -131,7 +121,6 @@ export default function Sidebar() {
           </a>
         </div>
       </aside>
-
       {slackModalOpen && (
         <SlackModal
           status={slackStatus}
