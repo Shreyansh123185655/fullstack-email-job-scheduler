@@ -20,9 +20,17 @@ Built strictly to the ReachInbox assignment constraints: **no cron jobs**, **Bul
 
 ---
 
-[🎥 Watch the Demo Video](https://drive.google.com/file/d/16CSTP69HOhyJlMQAolZ4HCv_S82tdyaF/view?usp=sharing)
+[🎥
+ Introductory video]
+https://github.com/user-attachments/assets/82a66ef5-3446-43be-a6da-eeca856e0639
 
-[🎥 Watch the Demo Video](https://drive.google.com/file/d/1ZM3jhVqVX16UoH3D8tbdX1OIRlm9vYd4/view?usp=sharing)
+
+[🎥 Full project demontration]
+https://github.com/user-attachments/assets/6c1f913d-159d-4524-8618-064dfb100ccb
+
+
+
+
 ---
 
 
@@ -95,82 +103,8 @@ Open `http://localhost:5173`. Vite proxies `/api` to port 4000. From the repo ro
 
 ---
 
-## Environment Variables
 
-### Backend (`backend/.env`)
 
-| Variable | Default | Description |
-| --- | --- | --- |
-| `PORT` | `4000` | Express port |
-| `FRONTEND_URL` | `http://localhost:5173` | Allowed CORS origin |
-| `DATABASE_URL` | `postgresql://postgres:postgres@localhost:5432/reachinbox` | PostgreSQL connection string |
-| `REDIS_HOST` | `localhost` | Redis host |
-| `REDIS_PORT` | `6379` | Redis port |
-| `ELASTICSEARCH_NODE` | `http://localhost:9200` | Elasticsearch URL |
-| `WORKER_CONCURRENCY` | `5` | Concurrent BullMQ jobs |
-| `MIN_DELAY_BETWEEN_EMAILS_SEC` | `2` | Minimum gap between sends per sender |
-| `MAX_EMAILS_PER_HOUR_PER_SENDER` | `100` | Fallback hourly limit per sender |
-| `SESSION_SECRET` | `reachinbox_secret_...` | Session cookie secret |
-| `GOOGLE_CLIENT_ID` | `""` | Google OAuth client ID (optional in dev) |
-| `GOOGLE_CLIENT_SECRET` | `""` | Google OAuth client secret |
-| `SLACK_CLIENT_ID` | `""` | Slack app client ID |
-| `SLACK_CLIENT_SECRET` | `""` | Slack app client secret |
-| `SLACK_WEBHOOK_URL` | `""` | Default Slack incoming webhook |
-
-### Frontend (`frontend/.env`)
-
-| Variable | Value | Description |
-| --- | --- | --- |
-| `VITE_USE_MOCK` | `false` | `false` uses the real backend |
-| `VITE_API_URL` | `/api` | API base path |
-
----
-
-## Demo and Verification Guide
-
-### 1. Senders and Seed Data
-```bash
-curl -s http://localhost:4000/api/senders
-```
-
-### 2. Schedule Emails
-1. Open **Compose** (`/compose`).
-2. Choose a sender.
-3. Enter recipients or upload a CSV/TXT (duplicates are removed).
-4. Set subject, body, delay between emails, and hourly limit.
-5. Click **Send**, or **Send Later** with a start time.
-6. Watch jobs in Bull-Board and **Ethereal preview URLs** in the terminal.
-
-### 3. Restart Persistence Test
-1. Schedule an email 2 minutes ahead via **Send Later**.
-2. Confirm it appears under **Scheduled**.
-3. Stop the backend (`Ctrl + C`), wait 15 seconds, restart with `npm run dev`.
-4. The job survives in Redis, dispatches at the target time, and no duplicate is created.
-
-### 4. Rate Limit and Slack Alert Test
-1. Open **Slack Alerts** in the sidebar.
-2. Connect via OAuth or paste an incoming webhook URL.
-3. Click **Test Alert** to verify delivery.
-4. Schedule more emails than the sender's hourly limit.
-5. Expect logs like:
-   ```
-   [Worker Rate-Limit] Sender ... hit limit (2/2). Deferring to next window.
-   [Slack Alert Sent] Successfully notified Slack for sender ...
-   [Worker] Job ... moved to delayed until ...
-   ```
-6. The deferred email stays in **Scheduled** with `scheduledAt` moved to the next hour.
-
----
-
-## Assumptions and Trade-offs
-
-- **Ethereal only.** No real mail is delivered; every send yields a preview URL.
-- **Hourly window is fixed**, aligned to the clock hour for deferral, with a Redis key TTL of 3600s for counting.
-- **PostgreSQL is the source of truth.** Redis holds queue state and counters; Elasticsearch is a rebuildable index.
-- **Google OAuth is optional in development** so reviewers can run the app without credentials.
-- **Deferral over failure.** Rate-limited jobs are rescheduled, never dropped.
-
----
 
 ## Repository Structure
 
