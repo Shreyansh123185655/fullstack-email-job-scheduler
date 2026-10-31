@@ -1,3 +1,4 @@
+<img width="1305" height="929" alt="Screenshot 2026-10-31 at 2 20 41 PM" src="https://github.com/user-attachments/assets/9ee3be0e-8ac5-4626-b507-bc61fba62992" />
 # ReachInbox Email Scheduler Project demonstration
 
 My deployed link from the scratch
@@ -19,7 +20,15 @@ https://github.com/user-attachments/assets/6c1f913d-159d-4524-8618-064dfb100ccb
 ## Screenshots
 
 <!-- Add screenshots: Dashboard, Compose, Scheduled list, Bull-Board, Slack alert -->
-<img width="1710" height="1107" alt="Screenshot 2026-10-31 at 9 45 52 AM" src="https://github.com/user-attachments/assets/57a05449-4b60-4bd3-bb45-8b0fd94e4a20" /><img width="1710" height="1107" alt="Screenshot 2026-10-31 at 10 38 26 AM" src="https://github.com/user-attachments/assets/2ed0a905-0e6c-476f-b005-6bc983ead64d" />
+Elastic Search
+<img width="1305" height="929" alt="Screenshot 2026-10-31 at 2 20 41 PM" src="https://github.com/user-attachments/assets/4dcdf84a-03fd-4e2e-a24f-f9f2a026d3c8" />
+
+My schedule and executed task
+<img width="1317" height="1025" alt="Screenshot 2026-10-31 at 2 21 18 PM" src="https://github.com/user-attachments/assets/17a0c940-2a57-45f4-8d1d-5d6133a62874" />
+
+<img width="1710" height="1107" alt="Screenshot 2026-10-31 at 9 45 52 AM" src="https://github.com/user-attachments/assets/57a05449-4b60-4bd3-bb45-8b0fd94e4a20" />
+
+<img width="1710" height="1107" alt="Screenshot 2026-10-31 at 10 38 26 AM" src="https://github.com/user-attachments/assets/2ed0a905-0e6c-476f-b005-6bc983ead64d" />
 <img width="1710" height="1107" alt="Screenshot 2026-10-31 at 9 48 05 AM" src="https://github.com/user-attachments/assets/c611c247-2a09-4faa-ac76-896c669ee53e" />
 <img width="1710" height="1107" alt="Screenshot 2026-10-31 at 9 47 53 AM" src="https://github.com/user-attachments/assets/3dd74f9d-8d65-43d4-89e3-eb064f586a5f" />
 <img width="1710" height="1107" alt="Screenshot 2026-10-31 at 9 47 49 AM" src="https://github.com/user-attachments/assets/6ae66290-1529-4deb-af52-55f52958e245" />
@@ -158,18 +167,42 @@ flowchart TD
 #### 6. Elasticsearch Search with Fallback
 #### 7. Live BullMQ Dashboard
 #### 8. Slack Integration with the real OAuth (google)
-## Overview
 
-| Concern | Approach |
-| --- | --- |
-| Scheduling | BullMQ delayed jobs in Redis (no `node-cron`, `setInterval`, or `agenda`) |
-| Idempotency | `jobId = email.id` plus an atomic PostgreSQL claim before any SMTP call |
-| Persistence | Redis AOF (`appendonly yes`) plus startup reconciliation of stuck jobs |
-| Rate limiting | Atomic Redis Lua script, per sender, per hour, shared by all workers |
-| Throttling | Minimum gap between sends per sender via `last_send:{senderId}` |
-| Search | Elasticsearch fuzzy `multi_match` with PostgreSQL `ILIKE` fallback |
-| Observability | Bull-Board at `/admin/queues`, Slack alerts on rate-limit hits |
 
+###As asked in the requirement section of the description shared by the job. Here are the explained terms 
+## 1. Ethereal Email & Environmental Variables
+Using Nodemailer to send emails but not actually deliver them to an inbox. Each email sent creates a preview link. 
+Environmental variables have been used. These are stored within `.env` files which store the config for PostgreSQL, Redis, Authentication, Slack, and the Email Scheduler.
+We have set the max number of running jobs to 5, and limited the time between sending each email to 2 seconds. We also have a limit on how many emails can be sent from a sender per hour (15).
+
+## 2. Architecture
+When the user schedules an email, the information will be stored within the PostgreSQL database and will be added to BullMQ. We have used Redis to control the delay of emails, meaning we don’t need to use cron jobs or polling.
+
+Email data is stored in PostgreSQL. Jobs are queued using Redis. If a job was interrupted during a restart, it will be restored.
+
+We can run up to 5 jobs at the same time. Redis has been used with Lua scripts to limit how many emails can be sent per hour. Emails that go over the limit will be rescheduled. We have Slack alerts to inform users when the limit has been hit.
+
+## 3. Features
+### Backend
+- Scheduled emails using BullMQ.
+- Data is stored in the PostgreSQL database. Jobs will be restored after a restart.
+- Limited to sending a certain amount per hour. Emails will be rescheduled if they go over the limit. Emails can be sent concurrently.
+- Monitoring using Bull Board. Search using Elasticsearch. Slack alerts.
+- Send emails using Ethereal SMTP with preview links.
+
+### Frontend
+- Login using Google OAuth. Developer login included for easy testing.
+- Dashboard with email stats, search, and navigation.
+- Create emails by adding recipients manually or uploading CSV/TXT files. Duplicates are removed automatically.
+- Schedule emails to send now or later.
+- View scheduled and sent emails within tables. See status of emails and Ethereal preview links.
+- Connect to Slack using OAuth or Webhook. Test notifications directly from the UI.
+
+## 4. Major Design Decisions
+- **Persistence & Queueing:** Email information is stored as the source of truth in PostgreSQL, while rapid queueing and scheduling is handled natively by Redis + BullMQ.
+- **Atomic Database Updates:** Updates to the database have been made atomically. This prevents race conditions and stops more than one worker from sending the same scheduled email.
+- **Graceful Deferral:** Emails that go over the rate limit are smoothly deferred and rescheduled into the next hour block instead of failing.
+- **Testing Ease:** The project has been made easier to test and demo by including a developer login bypass and allowing direct Slack Webhook setup.
 
 
 ---
