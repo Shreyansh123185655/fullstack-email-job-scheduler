@@ -2,9 +2,7 @@ import { env } from "../config/env";
 import type { Email, EmailCounts, EmailStatus, ScheduleEmailPayload, Sender } from "../types";
 import { http, wait } from "./http";
 import { mockEmails, mockSenders } from "./mockDb";
-
-const db: Email[] = [...mockEmails]; // in-memory only, used when VITE_USE_MOCK=true
-
+const db: Email[] = [...mockEmails]; 
 export const emailService = {
   async list(status: EmailStatus, q = ""): Promise<Email[]> {
     if (!env.useMock) return http<Email[]>(`/emails?status=${status}&q=${encodeURIComponent(q)}`);
