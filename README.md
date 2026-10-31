@@ -22,24 +22,7 @@ Built strictly to the ReachInbox assignment constraints: **no cron jobs**, **Bul
 
 
 
-## Architecture
 
-```mermaid
-flowchart TD
-    UI[React 18 + Vite Dashboard] -->|REST /api| API[Express API :4000]
-    API --> PG[(PostgreSQL<br/>source of truth)]
-    API --> ES[(Elasticsearch<br/>search index)]
-    API --> Q[(Redis 7 AOF<br/>BullMQ + counters)]
-    Q --> W[BullMQ Worker]
-    W --> PG
-    W --> ES
-    W --> RL{Lua rate limiter}
-    RL -->|allowed| SMTP[Ethereal SMTP]
-    RL -->|limit hit| DEF[Defer to next hour]
-    DEF --> Q
-    DEF --> SLACK[Slack webhook alert]
-    API --> BB[Bull-Board /admin/queues]
-```
 
 ### Email Lifecycle
 
@@ -341,7 +324,24 @@ fullstack-email-job-scheduler/
 <img width="1710" height="1107" alt="Screenshot 2026-10-31 at 9 46 07 AM" src="https://github.com/user-attachments/assets/6d52390d-c9ca-4a6d-a592-f56be01b5425" />
 <img width="1710" height="1107" alt="Screenshot 2026-10-31 at 9 46 02 AM" src="https://github.com/user-attachments/assets/c425bddc-aa05-4875-afcd-9811131a541a" />
 ---
+## Architecture
 
+```mermaid
+flowchart TD
+    UI[React 18 + Vite Dashboard] -->|REST /api| API[Express API :4000]
+    API --> PG[(PostgreSQL<br/>source of truth)]
+    API --> ES[(Elasticsearch<br/>search index)]
+    API --> Q[(Redis 7 AOF<br/>BullMQ + counters)]
+    Q --> W[BullMQ Worker]
+    W --> PG
+    W --> ES
+    W --> RL{Lua rate limiter}
+    RL -->|allowed| SMTP[Ethereal SMTP]
+    RL -->|limit hit| DEF[Defer to next hour]
+    DEF --> Q
+    DEF --> SLACK[Slack webhook alert]
+    API --> BB[Bull-Board /admin/queues]
+```
 ## Submission and Reviewer Access
 
 - **GitHub Repository:** [Shreyansh123185655/fullstack-email-job-scheduler](https://github.com/Shreyansh123185655/fullstack-email-job-scheduler)
