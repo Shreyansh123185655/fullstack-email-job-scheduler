@@ -7,9 +7,7 @@ import { rateLimiter } from "../services/rateLimiter";
 import { slackService } from "../services/slackService";
 import { sendMailViaSmtp } from "../services/smtpService";
 import { elasticService } from "../services/elasticService";
-
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
 export function startEmailWorker() {
   const worker = new Worker<EmailJobData>(
     EMAIL_QUEUE_NAME,
@@ -19,9 +17,6 @@ export function startEmailWorker() {
       const interEmailDelaySec = delaySeconds || env.worker.minDelayBetweenEmailsSec;
 
       console.log(`[Worker] Processing job ${job.id} for email ${emailId}`);
-
-      // STEP 1: Strict Idempotency Lock
-      // Atomic status transition in PostgreSQL prevents parallel execution across workers
       const updateResult = await prisma.$executeRaw`
         UPDATE "Email"
         SET "status" = 'processing', "updatedAt" = NOW()
@@ -32,13 +27,10 @@ export function startEmailWorker() {
         console.log(`[Worker] Email ${emailId} is already processed or not in scheduled state. Skipping.`);
         return { skipped: true, reason: "Already processed or claimed" };
       }
-
-      // Fetch email and sender details
       const email = await prisma.email.findUnique({
         where: { id: emailId },
         include: { sender: true },
       });
-
       if (!email || !email.sender) {
         console.error(`[Worker] Email ${emailId} or Sender ${senderId} not found.`);
         await prisma.email.update({
@@ -47,8 +39,6 @@ export function startEmailWorker() {
         });
         return { success: false, reason: "Sender missing" };
       }
-
-      // STEP 2: Atomic Rate Limiter Check via Redis Lua Script
       const rateLimitCheck = await rateLimiter.checkAndIncrement(senderId, effectiveHourlyLimit);
 
       if (!rateLimitCheck.allowed) {
@@ -66,8 +56,6 @@ export function startEmailWorker() {
             scheduledAt: nextHourDate,
           },
         });
-
-        // Trigger live Slack notification if configured
         await slackService.notifyRateLimitHit({
           senderEmail: email.sender.email,
           senderId: email.sender.id,
@@ -76,8 +64,6 @@ export function startEmailWorker() {
           nextWindowTimestamp: rateLimitCheck.nextWindowTimestamp,
           userId: userId || email.userId,
         });
-
-        // Move to delayed in BullMQ using token and throw DelayedError
         if (token) {
           await job.moveToDelayed(rateLimitCheck.nextWindowTimestamp, token);
           console.log(`[Worker] Job ${job.id} moved to delayed until ${nextHourDate.toISOString()}`);
@@ -86,9 +72,6 @@ export function startEmailWorker() {
           return { deferred: true, nextWindow: nextHourDate.toISOString() };
         }
       }
-
-      // STEP 3: Provider Throttling Delay
-      // Enforces minimum inter-email delay per sender across workers
       if (interEmailDelaySec > 0) {
         const lastSendKey = `last_send:${senderId}`;
         const lastSendTime = await redisClient.get(lastSendKey);
@@ -105,8 +88,6 @@ export function startEmailWorker() {
         }
         await redisClient.set(lastSendKey, Date.now().toString(), "EX", 300);
       }
-
-      // STEP 4: Send via SMTP (Ethereal)
       try {
         const sendResult = await sendMailViaSmtp({
           host: email.sender.smtpHost,
@@ -120,8 +101,6 @@ export function startEmailWorker() {
         });
 
         const sentAt = new Date();
-
-        // Update database status to sent
         await prisma.email.update({
           where: { id: emailId },
           data: {
@@ -130,15 +109,12 @@ export function startEmailWorker() {
             failedReason: null,
           },
         });
-
-        // Update Elasticsearch index
         await elasticService.updateEmailStatus(emailId, "sent", sentAt);
 
         console.log(`[Worker SUCCESS] Email ${emailId} sent to ${email.to}!`);
         if (sendResult.previewUrl) {
           console.log(`[Ethereal Preview URL] ${sendResult.previewUrl}`);
         }
-
         return {
           success: true,
           messageId: sendResult.messageId,
@@ -171,7 +147,6 @@ export function startEmailWorker() {
 
   worker.on("failed", (job, err) => {
     if (err instanceof DelayedError) {
-      // Expected for rate-limited / deferred jobs
       return;
     }
     console.error(`[Worker] Job ${job?.id} failed with error:`, err.message);
@@ -179,10 +154,6 @@ export function startEmailWorker() {
 
   return worker;
 }
-
-/**
- * Reconciles dangling emails stuck in 'processing' on server restart
- */
 export async function reconcileDanglingJobs(): Promise<void> {
   try {
     const updated = await prisma.$executeRaw`
