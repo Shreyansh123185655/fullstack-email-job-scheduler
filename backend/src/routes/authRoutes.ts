@@ -2,15 +2,11 @@ import { Router } from "express";
 import passport from "passport";
 import { authController } from "../controllers/authController";
 import { env } from "../config/env";
-
 const router = Router();
-
 router.get("/me", authController.getMe);
 router.post("/login", authController.devLogin);
 router.post("/logout", authController.logout);
 router.post("/google/verify", authController.verifyGoogleToken);
-
-// Real Google OAuth initiate
 router.get("/google", (req, res, next) => {
   if (env.google.clientId && env.google.clientSecret) {
     return passport.authenticate("google", {
@@ -24,8 +20,6 @@ router.get("/google", (req, res, next) => {
     )}`
   );
 });
-
-// Real Google OAuth callback
 router.get(
   "/google/callback",
   passport.authenticate("google", {
