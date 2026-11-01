@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
 import { prisma } from "../config/db";
-
 export const authController = {
   async getMe(req: Request, res: Response) {
     if (req.isAuthenticated && req.isAuthenticated() && req.user) {
@@ -11,34 +10,27 @@ export const authController = {
       const user = await prisma.user.findUnique({ where: { id: sessionUserId } });
       if (user) return res.json(user);
     }
-
     return res.status(401).json({ message: "Not authenticated" });
   },
-
   async verifyGoogleToken(req: Request, res: Response) {
     try {
       const { credential } = req.body;
       if (!credential) {
         return res.status(400).json({ error: "Missing Google credential token" });
       }
-
-      // Verify token with Google's official tokeninfo endpoint
       const response = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(credential)}`);
       if (!response.ok) {
         return res.status(401).json({ error: "Invalid Google credential" });
       }
-
       const payload = (await response.json()) as any;
       const { sub: googleId, email, name, picture: avatarUrl } = payload;
 
       if (!email) {
         return res.status(400).json({ error: "No email associated with Google account" });
       }
-
       let user = await prisma.user.findFirst({
         where: { OR: [{ googleId }, { email }] },
       });
-
       if (!user) {
         user = await prisma.user.create({
           data: {
@@ -73,7 +65,6 @@ export const authController = {
       return res.status(500).json({ error: err.message });
     }
   },
-
   async devLogin(req: Request, res: Response) {
     try {
       const { email, name } = req.body;
@@ -90,7 +81,6 @@ export const authController = {
           },
         });
       }
-
       (req.session as any).userId = user.id;
       if (req.login) {
         req.login(user, (err) => {
@@ -108,7 +98,6 @@ export const authController = {
       return res.status(500).json({ error: err.message });
     }
   },
-
   async logout(req: Request, res: Response) {
     const finish = () => {
       req.session?.destroy(() => {
@@ -116,7 +105,6 @@ export const authController = {
         return res.json({ message: "Logged out successfully" });
       });
     };
-
     if (req.logout) {
       req.logout(() => finish());
     } else {
