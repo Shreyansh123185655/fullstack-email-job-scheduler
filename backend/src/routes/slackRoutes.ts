@@ -1,13 +1,10 @@
 import { Router } from "express";
 import { slackController } from "../controllers/slackController";
-
 const router = Router();
-
 router.get("/oauth", slackController.startOAuth);
 router.get("/callback", slackController.handleCallback);
 router.post("/webhook", slackController.connectWebhook);
 router.get("/status", slackController.getStatus);
 router.post("/disconnect", slackController.disconnect);
 router.post("/test-alert", slackController.sendTestAlert);
-
 export default router;
