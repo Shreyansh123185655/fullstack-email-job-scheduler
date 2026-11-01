@@ -2,16 +2,12 @@
 
 My deployed link from the scratch
 https://frontend-rouge-two-96.vercel.app
+
+Backend API (Render): https://reachinbox-backend-3g1j.onrender.com
+
+BullMQ Admin: https://reachinbox-backend-3g1j.onrender.com/admin/queues
 ---
----
 
-
-[🎥 Full project demontration]
-https://github.com/user-attachments/assets/6c1f913d-159d-4524-8618-064dfb100ccb
-
-(This is the main Video) Here i have also used the elastic search in the project.
-
----
 ## Screenshots
 
 <!-- Add screenshots: Dashboard, Compose, Scheduled list, Bull-Board, Slack alert -->
@@ -29,6 +25,16 @@ My schedule and executed task
 <img width="1710" height="1107" alt="Screenshot 2026-10-31 at 9 47 49 AM" src="https://github.com/user-attachments/assets/6ae66290-1529-4deb-af52-55f52958e245" />
 <img width="1710" height="1107" alt="Screenshot 2026-10-31 at 9 46 07 AM" src="https://github.com/user-attachments/assets/6d52390d-c9ca-4a6d-a592-f56be01b5425" />
 <img width="1710" height="1107" alt="Screenshot 2026-10-31 at 9 46 02 AM" src="https://github.com/user-attachments/assets/c425bddc-aa05-4875-afcd-9811131a541a" />
+---
+
+---
+
+
+[🎥 Full project demontration]
+https://github.com/user-attachments/assets/6c1f913d-159d-4524-8618-064dfb100ccb
+
+(This is the main Video) Here i have also used the elastic search in the project.
+
 ---
 
 ## Tech Stack
