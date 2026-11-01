@@ -38,7 +38,7 @@ model Email {
   to           String
   subject      String
   body         String    @db.Text
-  status       String    @default("scheduled") // "scheduled" | "processing" | "sent" | "failed"
+  status       String    @default("scheduled") 
   scheduledAt  DateTime?
   sentAt       DateTime?
   failedReason String?
