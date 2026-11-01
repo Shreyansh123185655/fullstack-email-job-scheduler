@@ -35,12 +35,10 @@ services:
         value: 15
       - key: SESSION_SECRET
         generateValue: true
-
   - type: redis
     name: reachinbox-redis
     plan: free
     ipAllowList: []
-
 databases:
   - name: reachinbox-db
     databaseName: reachinbox
