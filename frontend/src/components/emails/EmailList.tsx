@@ -3,9 +3,7 @@ import Button from "../ui/Button";
 import Spinner from "../ui/Spinner";
 import StateMessage from "../ui/StateMessage";
 import EmailRow from "./EmailRow";
-
 interface Props { emails: Email[]; loading: boolean; error: string | null; status: EmailStatus; searching: boolean; onRetry: () => void }
-
 export default function EmailList({ emails, loading, error, status, searching, onRetry }: Props) {
   if (loading) return <Spinner label="Loading emails…" />;
   if (error) return <StateMessage title="We couldn't load your emails" hint={error} action={<Button onClick={onRetry}>Try again</Button>} />;
