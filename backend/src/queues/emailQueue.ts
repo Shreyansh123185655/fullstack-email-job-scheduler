@@ -1,8 +1,6 @@
 import { Queue } from "bullmq";
 import { redisConnectionOptions } from "../config/redis";
-
 export const EMAIL_QUEUE_NAME = "email-queue";
-
 export interface EmailJobData {
   emailId: string;
   senderId: string;
@@ -10,7 +8,6 @@ export interface EmailJobData {
   delaySeconds: number;
   hourlyLimit: number;
 }
-
 export const emailQueue = new Queue<EmailJobData>(EMAIL_QUEUE_NAME, {
   connection: redisConnectionOptions,
   defaultJobOptions: {
@@ -23,7 +20,6 @@ export const emailQueue = new Queue<EmailJobData>(EMAIL_QUEUE_NAME, {
     removeOnFail: false,
   },
 });
-
 emailQueue.on("error", (err) => {
   console.error("[EmailQueue Error]", err);
 });
