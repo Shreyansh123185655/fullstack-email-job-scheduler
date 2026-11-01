@@ -13,11 +13,12 @@ export default function App() {
       <Route element={<ProtectedRoute />}>
         <Route element={<DashboardLayout />}>
           <Route index element={<Navigate to="/scheduled" replace />} />
+          <Route path="dashboard" element={<Navigate to="/scheduled" replace />} />
           <Route path="scheduled" element={<EmailListPage status="scheduled" />} />
           <Route path="sent" element={<EmailListPage status="sent" />} />
           <Route path="email/:id" element={<EmailDetailPage />} />
+          <Route path="compose" element={<ComposePage />} />
         </Route>
-        <Route path="compose" element={<ComposePage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

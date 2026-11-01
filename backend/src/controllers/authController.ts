@@ -11,12 +11,67 @@ export const authController = {
       const user = await prisma.user.findUnique({ where: { id: sessionUserId } });
       if (user) return res.json(user);
     }
-    const primaryUser = await prisma.user.findFirst({
-      where: { email: "shreyansh.gupta@reachinbox.ai" },
-    });
-    if (primaryUser) return res.json(primaryUser);
 
     return res.status(401).json({ message: "Not authenticated" });
+  },
+
+  async verifyGoogleToken(req: Request, res: Response) {
+    try {
+      const { credential } = req.body;
+      if (!credential) {
+        return res.status(400).json({ error: "Missing Google credential token" });
+      }
+
+      // Verify token with Google's official tokeninfo endpoint
+      const response = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(credential)}`);
+      if (!response.ok) {
+        return res.status(401).json({ error: "Invalid Google credential" });
+      }
+
+      const payload = (await response.json()) as any;
+      const { sub: googleId, email, name, picture: avatarUrl } = payload;
+
+      if (!email) {
+        return res.status(400).json({ error: "No email associated with Google account" });
+      }
+
+      let user = await prisma.user.findFirst({
+        where: { OR: [{ googleId }, { email }] },
+      });
+
+      if (!user) {
+        user = await prisma.user.create({
+          data: {
+            googleId,
+            email,
+            name: name || "Google User",
+            avatarUrl: avatarUrl || undefined,
+          },
+        });
+      } else {
+        user = await prisma.user.update({
+          where: { id: user.id },
+          data: {
+            googleId,
+            name: name || user.name,
+            avatarUrl: avatarUrl || user.avatarUrl,
+          },
+        });
+      }
+
+      (req.session as any).userId = user.id;
+      if (req.login) {
+        req.login(user, (err) => {
+          if (err) return res.status(500).json({ error: err.message });
+          return req.session.save(() => res.json(user));
+        });
+      } else {
+        return req.session.save(() => res.json(user));
+      }
+    } catch (err: any) {
+      console.error("[Google Token Verification Error]", err);
+      return res.status(500).json({ error: err.message });
+    }
   },
 
   async devLogin(req: Request, res: Response) {

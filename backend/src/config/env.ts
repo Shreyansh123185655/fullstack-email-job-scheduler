@@ -21,7 +21,7 @@ export const env = {
   google: {
     clientId: process.env.GOOGLE_CLIENT_ID || "",
     clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
-    callbackUrl: process.env.GOOGLE_CALLBACK_URL || "http://localhost:4000/api/auth/google/callback",
+    callbackUrl: process.env.GOOGLE_CALLBACK_URL || (process.env.RENDER_EXTERNAL_URL ? `${process.env.RENDER_EXTERNAL_URL}/api/auth/google/callback` : "http://localhost:4000/api/auth/google/callback"),
   },
   slack: {
     clientId: process.env.SLACK_CLIENT_ID || "",
