@@ -5,10 +5,6 @@ https://frontend-rouge-two-96.vercel.app
 ---
 ---
 
-[🎥
- Introductory video]
-https://github.com/user-attachments/assets/82a66ef5-3446-43be-a6da-eeca856e0639
-
 
 [🎥 Full project demontration]
 https://github.com/user-attachments/assets/6c1f913d-159d-4524-8618-064dfb100ccb
